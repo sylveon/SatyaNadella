@@ -208,16 +208,12 @@ public class Bot extends ListenerAdapter
         CommandClient client = new CommandClientBuilder()
                 .setPrefix("!g")
                 .setAlternativePrefix("g!")
-                .setOwnerId("113156185389092864")
+                .setOwnerId("207123748120166400")
                 .setGame(Game.playing(Constants.TADA+" "+Constants.WEBSITE+" "+Constants.TADA+" Type !ghelp "+Constants.TADA))
                 .setEmojis(Constants.TADA, "\uD83D\uDCA5", "\uD83D\uDCA5")
-                //.setServerInvite("https://discordapp.com/invite/0p9LSGoRLu6Pet0k")
                 .setHelpConsumer(event -> event.replyInDm(FormatUtil.formatHelp(event), 
                         m-> event.getMessage().addReaction(Constants.REACTION).queue(s->{},f->{}), 
                         f-> event.replyWarning("Help could not be sent because you are blocking Direct Messages")))
-                .setDiscordBotsKey(tokens.get(1))
-                .setCarbonitexKey(tokens.get(5))
-                .setDiscordBotListKey(tokens.get(6))
                 .addCommands(
                         new AboutCommand(bot),
                         new InviteCommand(),

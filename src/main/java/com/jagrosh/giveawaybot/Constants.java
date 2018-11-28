@@ -52,11 +52,10 @@ public class Constants {
         return channel.getGuild().getSelfMember().hasPermission(channel, Permission.MESSAGE_READ, Permission.MESSAGE_WRITE, 
                 Permission.MESSAGE_HISTORY, Permission.MESSAGE_EMBED_LINKS, Permission.MESSAGE_EXT_EMOJI, Permission.MESSAGE_ADD_REACTION);
     }
-    
-    public static final boolean canGiveaway(Member member)
+
+    public static final boolean canManageGiveaway(Member member)
     {
-        return member.hasPermission(Permission.MANAGE_SERVER) || 
-                    member.getRoles().stream().anyMatch(r -> r.getName().equalsIgnoreCase("giveaways"));
+        return member.hasPermission(Permission.MESSAGE_MANAGE);
     }
     
     public static final Command.Category GIVEAWAY = new Command.Category("Giveaway", event -> 
@@ -66,9 +65,18 @@ public class Constants {
             event.replyError("This command cannot be used in Direct Messages!");
             return false;
         }
-        if(canGiveaway(event.getMember()))
-            return true;
-        event.reply(event.getClient().getError()+" You must have the Manage Server permission, or a role called \"Giveaways\", to use this command!");
-        return false;
+
+        return true;
+    });
+
+    public static final Command.Category GIVEAWAY_MANAGE = new Command.Category("GiveawayManage", event ->
+    {
+        if(event.getGuild()==null)
+        {
+            event.replyError("This command cannot be used in Direct Messages!");
+            return false;
+        }
+
+        return canManageGiveaway(event.getMember());
     });
 }

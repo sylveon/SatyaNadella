@@ -39,7 +39,7 @@ public class EndCommand extends Command
         name = "end";
         help = "ends (picks a winner for) the specified or latest giveaway in the current channel";
         arguments = "[messageId]";
-        category = Constants.GIVEAWAY;
+        category = Constants.GIVEAWAY_MANAGE;
         guildOnly = true;
         botPermissions = new Permission[]{Permission.MESSAGE_HISTORY};
     }
