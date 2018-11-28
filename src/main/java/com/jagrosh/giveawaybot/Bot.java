@@ -234,8 +234,6 @@ public class Bot extends ListenerAdapter
         
         // start logging in
         bot.setShardManager(new DefaultShardManagerBuilder()
-                .setShardsTotal(shardTotal)
-                .setShards(shardSetId*shardSetSize, (shardSetId+1)*shardSetSize-1)
                 .setToken(tokens.get(0))
                 .setAudioEnabled(false)
                 .setGame(Game.playing("loading..."))
