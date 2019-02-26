@@ -80,11 +80,6 @@ public class GiveawayManager extends DataManager
         return getGiveaways(selectAll(STATUS.is(status.ordinal())));
     }
     
-    public List<Giveaway> getGiveawaysEndingBefore(Instant end)
-    {
-        return getGiveaways(selectAll(END_TIME.isLessThan(end.getEpochSecond()) + " AND " + STATUS.is(Status.RUN.ordinal())));
-    }
-    
     private List<Giveaway> getGiveaways(String selection)
     {
         return read(selection, results -> 
@@ -93,7 +88,12 @@ public class GiveawayManager extends DataManager
             while(results.next())
                 list.add(giveaway(results));
             return list;
-        }, Collections.EMPTY_LIST);
+        }, null);
+    }
+    
+    public List<Giveaway> getGiveawaysEndingBefore(Instant end)
+    {
+        return getGiveaways(selectAll(END_TIME.isLessThan(end.getEpochSecond()) + " AND " + STATUS.is(Status.RUN.ordinal())));
     }
     
     public boolean createGiveaway(Message message, Instant end, int winners, String prize)

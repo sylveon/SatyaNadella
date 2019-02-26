@@ -17,11 +17,13 @@ package com.jagrosh.giveawaybot.commands;
 
 import com.jagrosh.giveawaybot.Bot;
 import com.jagrosh.giveawaybot.Constants;
+import com.jagrosh.giveawaybot.entities.Giveaway;
 import com.jagrosh.giveawaybot.util.FormatUtil;
 import com.jagrosh.giveawaybot.util.OtherUtil;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import java.time.Instant;
+import java.util.List;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.exceptions.PermissionException;
 
@@ -89,11 +91,21 @@ public class StartCommand extends Command
             event.replyWarning("Number of winners must be at least 1 and no larger than "+Constants.MAX_WINNERS+EXAMPLE);
             return;
         }
-        try{ event.getMessage().delete().queue(); }catch(PermissionException ex){}
+        try
+        { 
+            event.getMessage().delete().queue(); 
+        }
+        catch(PermissionException ignore) {}
         Instant now = event.getMessage().getCreationTime().toInstant();
-        if(bot.getDatabase().giveaways.getGiveaways(event.getGuild()).size() >= Constants.MAX_GIVEAWAYS)
+        List<Giveaway> list = bot.getDatabase().giveaways.getGiveaways(event.getGuild());
+        if(list==null)
         {
-            event.replyError("There are already "+Constants.MAX_GIVEAWAYS+" running on this server!");
+            event.replyError("An error occurred when trying to start giveaway.");
+            return;
+        }
+        else if(list.size() >= Constants.MAX_GIVEAWAYS)
+        {
+            event.replyError("There are already "+Constants.MAX_GIVEAWAYS+" giveaways running on this server!");
             return;
         }
         bot.startGiveaway(event.getTextChannel(), now, seconds, winners, item);

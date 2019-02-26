@@ -17,6 +17,7 @@ package com.jagrosh.giveawaybot.commands;
 
 import com.jagrosh.giveawaybot.Bot;
 import com.jagrosh.giveawaybot.Constants;
+import com.jagrosh.giveawaybot.entities.Giveaway;
 import com.jagrosh.giveawaybot.util.FormatUtil;
 import com.jagrosh.giveawaybot.util.OtherUtil;
 import com.jagrosh.jdautilities.command.Command;
@@ -53,8 +54,15 @@ public class CreateCommand extends Command {
     }
     
     @Override
-    protected void execute(CommandEvent event) {
-        if(bot.getDatabase().giveaways.getGiveaways(event.getGuild()).size() >= Constants.MAX_GIVEAWAYS)
+    protected void execute(CommandEvent event) 
+    {
+        List<Giveaway> list = bot.getDatabase().giveaways.getGiveaways(event.getGuild());
+        if(list==null)
+        {
+            event.replyError("An error occurred when trying to being giveaway creation.");
+            return;
+        }
+        else if(list.size() >= Constants.MAX_GIVEAWAYS)
         {
             event.replyError("There are already "+Constants.MAX_GIVEAWAYS+" running on this server!");
             return;
@@ -157,7 +165,9 @@ public class CreateCommand extends Command {
                             }
                             else
                             {
-                                event.replySuccess("Ok! "+num+" winners it is! Finally, what do you want to give away?"+PRIZE);
+                                event.replySuccess("Ok! "+num+" "
+                                    + FormatUtil.pluralise(num, "winner", "winners")
+                                    + " it is! Finally, what do you want to give away?"+PRIZE);
                                 waitForPrize(event, tchan, seconds, num);
                             }
                         } catch(NumberFormatException ex) {
@@ -188,7 +198,13 @@ public class CreateCommand extends Command {
                         }
                         else
                         {
-                            if(bot.getDatabase().giveaways.getGiveaways(event.getGuild()).size() >= Constants.MAX_GIVEAWAYS)
+                            List<Giveaway> list = bot.getDatabase().giveaways.getGiveaways(event.getGuild());
+                            if(list==null)
+                            {
+                                event.replyError("An error occurred when trying to create giveaway.");
+                                return;
+                            }
+                            else if(list.size() >= Constants.MAX_GIVEAWAYS)
                             {
                                 event.replyError("There are already "+Constants.MAX_GIVEAWAYS+" running on this server!");
                                 return;

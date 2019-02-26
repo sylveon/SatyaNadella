@@ -21,6 +21,7 @@ import com.jagrosh.giveawaybot.entities.Giveaway;
 import com.jagrosh.giveawaybot.entities.Status;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
+import java.util.Collections;
 import java.util.List;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Message;
@@ -51,10 +52,13 @@ public class EndCommand extends Command
         {
             List<Giveaway> list = bot.getDatabase().giveaways.getGiveaways(event.getTextChannel());
             Giveaway giveaway = null;
-            for(Giveaway g: list)
+            if(list!=null)
             {
-                if(giveaway==null || g.messageId>giveaway.messageId)
-                    giveaway = g;
+                for(Giveaway g: list)
+                {
+                    if(giveaway==null || g.messageId>giveaway.messageId)
+                        giveaway = g;
+                }
             }
             if(giveaway!=null)
             {

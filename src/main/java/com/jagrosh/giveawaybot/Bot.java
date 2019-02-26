@@ -25,11 +25,10 @@ import com.jagrosh.jdautilities.command.CommandClient;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.examples.command.PingCommand;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 import java.time.Instant;
 import java.util.EnumSet;
-import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import net.dv8tion.jda.bot.sharding.DefaultShardManagerBuilder;
@@ -111,11 +110,6 @@ public class Bot extends ListenerAdapter
         return guilds;
     }//*/
     
-    public List<Giveaway> getGiveaways()
-    {
-        return database.giveaways.getGiveaways();
-    }
-    
     // public methods
     public void shutdown()
     {
@@ -141,10 +135,11 @@ public class Bot extends ListenerAdapter
     public boolean deleteGiveaway(long channelId, long messageId)
     {
         TextChannel channel = shards.getTextChannelById(channelId);
-        try {
+        try 
+        {
             channel.deleteMessageById(messageId).queue();
-        } catch(Exception e) {
-        }
+        } 
+        catch(Exception ignore) {}
         return database.giveaways.deleteGiveaway(messageId);
     }
     
@@ -173,7 +168,7 @@ public class Bot extends ListenerAdapter
     @Override
     public void onReady(ReadyEvent event)
     {
-        webhook.send("\uD83C\uDF89 Shard `"+(event.getJDA().getShardInfo().getShardId()+1)+"/"
+        webhook.send(Constants.TADA + " Shard `"+(event.getJDA().getShardInfo().getShardId()+1)+"/"
                 +event.getJDA().getShardInfo().getShardTotal()+"` has connected. Guilds: `"
                 +event.getJDA().getGuilds().size()+"` Users: `"+event.getJDA().getUsers().size()+"`");
     }
@@ -187,19 +182,13 @@ public class Bot extends ListenerAdapter
      */
     public static void main(int shardTotal, int shardSetId, int shardSetSize) throws Exception
     {
-        // load tokens from a file
-        // 0 - bot token
-        // 1 - dbots key
-        // 2 - database host
-        // 3 - database username
-        // 4 - database pass
-        // 5 - carbon key
-        // 6 - dbl key
-        // 7 - webhook
-        List<String> tokens = Files.readAllLines(Paths.get("config.txt"));
+        Config config = ConfigFactory.load();
         
         // instantiate a bot with a database connector
-        Bot bot = new Bot(new Database(tokens.get(2), tokens.get(3), tokens.get(4)), tokens.get(7));
+        Bot bot = new Bot(new Database(config.getString("database.host"), 
+                                       config.getString("database.username"), 
+                                       config.getString("database.password")), 
+                          config.getString("webhook"));
         
         // instantiate an event waiter
         EventWaiter waiter = new EventWaiter(Executors.newSingleThreadScheduledExecutor(), false);
@@ -210,7 +199,7 @@ public class Bot extends ListenerAdapter
                 .setAlternativePrefix("g!")
                 .setOwnerId("207123748120166400")
                 .setGame(Game.playing(Constants.TADA+" "+Constants.WEBSITE+" "+Constants.TADA+" Type !ghelp "+Constants.TADA))
-                .setEmojis(Constants.TADA, "\uD83D\uDCA5", "\uD83D\uDCA5")
+                .setEmojis(Constants.TADA, Constants.WARNING, Constants.ERROR)
                 .setHelpConsumer(event -> event.replyInDm(FormatUtil.formatHelp(event), 
                         m-> event.getMessage().addReaction(Constants.REACTION).queue(s->{},f->{}), 
                         f-> event.replyWarning("Help could not be sent because you are blocking Direct Messages")))
@@ -230,11 +219,11 @@ public class Bot extends ListenerAdapter
                         new ShutdownCommand(bot)
                 ).build();
         
-        bot.getWebhook().send("\uD83C\uDF89 Starting shards `"+(shardSetId*shardSetSize + 1) + " - " + ((shardSetId+1)*shardSetSize) + "` of `"+shardTotal+"`...");
+        bot.getWebhook().send(Constants.TADA + " Starting shards `"+(shardSetId*shardSetSize + 1) + " - " + ((shardSetId+1)*shardSetSize) + "` of `"+shardTotal+"`...");
         
         // start logging in
         bot.setShardManager(new DefaultShardManagerBuilder()
-                .setToken(tokens.get(0))
+                .setToken(config.getString("bot-token"))
                 .setAudioEnabled(false)
                 .setGame(Game.playing("loading..."))
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
