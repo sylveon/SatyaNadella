@@ -126,7 +126,7 @@ public class Bot extends ListenerAdapter
         Instant end = now.plusSeconds(seconds);
         Message msg = new Giveaway(0, channel.getIdLong(), channel.getGuild().getIdLong(), end, winners, prize, Status.RUN).render(channel.getGuild().getSelfMember().getColor(), now);
         channel.sendMessage(msg).queue(m -> {
-            m.addReaction(Constants.TADA).queue();
+            m.addReaction(Constants.REACTION).queue();
             database.giveaways.createGiveaway(m, end, winners, prize);
         }, v -> LOG.warn("Unable to start giveaway: "+v));
         return true;
