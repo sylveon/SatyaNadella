@@ -152,7 +152,7 @@ public class Giveaway
             eb.setAuthor(prize, null, null);
         try 
         {
-            List<Long> ids = restJDA.getReactionUsers(Long.toString(channelId), Long.toString(messageId), MiscUtil.encodeUTF8(Constants.TADA))
+            List<Long> ids = restJDA.getReactionUsers(Long.toString(channelId), Long.toString(messageId), MiscUtil.encodeUTF8(Constants.REACTION))
                     .cache(true).stream().distinct().collect(Collectors.toList());
             List<Long> wins = selectWinners(ids, winners);
             String toSend;
