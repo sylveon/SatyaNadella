@@ -198,7 +198,7 @@ public class Bot extends ListenerAdapter
                 .setPrefix("!g")
                 .setAlternativePrefix("g!")
                 .setOwnerId("207123748120166400")
-                .setGame(Game.playing(Constants.TADA+" "+Constants.WEBSITE+" "+Constants.TADA+" Type !ghelp "+Constants.TADA))
+                .setGame(Game.playing(Constants.TADA_UTF+" "+Constants.WEBSITE+" "+Constants.TADA_UTF+" Type !ghelp "+Constants.TADA_UTF))
                 .setEmojis(Constants.TADA, Constants.WARNING, Constants.ERROR)
                 .setHelpConsumer(event -> event.replyInDm(FormatUtil.formatHelp(event), 
                         m-> event.getMessage().addReaction(Constants.REACTION).queue(s->{},f->{}), 

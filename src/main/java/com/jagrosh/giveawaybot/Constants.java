@@ -32,6 +32,7 @@ public class Constants {
     public static final OffsetDateTime STARTUP = OffsetDateTime.now();
     public static final int PRIZE_MAX   = 250;
     public static final String TADA     = "<:msparty:517199105458569216>";
+    public static final String TADA_UTF = "\uD83C\uDF89"; // 🎉
     public static final String WARNING  = "\uD83D\uDCA5"; // 💥
     public static final String ERROR    = "\uD83D\uDCA5"; // 💥
     public static final String YAY      = "<:msparty:517199105458569216>";
