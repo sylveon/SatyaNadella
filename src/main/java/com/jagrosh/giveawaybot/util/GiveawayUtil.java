@@ -45,7 +45,7 @@ public class GiveawayUtil
     {
         threadpool.submit(() -> {
             try {
-                MessageReaction mr = message.getReactions().stream().filter(r -> r.getReactionEmote().getName().equals(Constants.TADA)).findAny().orElse(null);
+                MessageReaction mr = message.getReactions().stream().filter(r -> r.getReactionEmote().getIdLong() == Constants.REACTION_ID).findAny().orElse(null);
                 List<User> users = new LinkedList<>();
                 mr.getUsers().stream().distinct().filter(u -> !u.isBot()).forEach(u -> users.add(u));
                 if(users.isEmpty())

@@ -37,7 +37,7 @@ public class EndCommand extends GiveawayCommand
         name = "end";
         help = "ends (picks a winner for) the specified or latest giveaway in the current channel";
         arguments = "[messageId]";
-        category = Constants.GIVEAWAY_MANAGE;
+        userPermissions = new Permission[]{Permission.MESSAGE_MANAGE};
         botPermissions = new Permission[]{Permission.MESSAGE_HISTORY};
     }
 
@@ -64,10 +64,10 @@ public class EndCommand extends GiveawayCommand
             }
             event.getChannel().getHistory().retrievePast(100).queue(messages -> {
                 Message m = messages.stream().filter(msg -> msg.getAuthor().equals(event.getSelfUser()) && !msg.getEmbeds().isEmpty() && msg.getEmbeds().get(0).getColor().getRGB()!=1
-                        && msg.getReactions().stream().anyMatch(mr -> mr.getReactionEmote().getName().equals(Constants.TADA) && mr.getCount()>0)).findFirst().orElse(null);
+                        && msg.getReactions().stream().anyMatch(mr -> mr.getReactionEmote().getIdLong() == Constants.REACTION_ID && mr.getCount()>0)).findFirst().orElse(null);
                 if(m==null)
                     event.replyWarning("I couldn't find any recent giveaways in this channel.");
-                else
+                else    
                 {
                     GiveawayUtil.getSingleWinner(m, wins -> event.replySuccess("The new winner is "+wins.getAsMention()+"! Congratulations!"), 
                         () -> event.replyWarning("I couldn't determine a winner for that giveaway."), bot.getThreadpool());

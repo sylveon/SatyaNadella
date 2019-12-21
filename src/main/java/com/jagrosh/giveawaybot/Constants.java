@@ -15,7 +15,6 @@
  */
 package com.jagrosh.giveawaybot;
 
-import com.jagrosh.jdautilities.command.Command;
 import java.awt.Color;
 import java.time.OffsetDateTime;
 import net.dv8tion.jda.core.Permission;
@@ -36,6 +35,7 @@ public class Constants
     public static final String ERROR    = "\uD83D\uDCA5"; // 💥
     public static final String YAY      = "<:msparty:517199105458569216>";
     public static final String REACTION = "msparty:517199105458569216";
+    public static final long REACTION_ID = 517199105458569216L;
     public static final Color  BLURPLE  = Color.decode("#7289DA");
     public static final String INVITE   = "https://giveawaybot.party/invite";
     public static final int MIN_TIME    = 10;
@@ -50,15 +50,4 @@ public class Constants
         return channel.getGuild().getSelfMember().hasPermission(channel, Permission.MESSAGE_READ, Permission.MESSAGE_WRITE, 
                 Permission.MESSAGE_HISTORY, Permission.MESSAGE_EMBED_LINKS, Permission.MESSAGE_EXT_EMOJI, Permission.MESSAGE_ADD_REACTION);
     }
-
-    public static final Command.Category GIVEAWAY_MANAGE = new Command.Category("GiveawayManage", event ->
-    {
-        if(event.getGuild()==null)
-        {
-            event.replyError("This command cannot be used in Direct Messages!");
-            return false;
-        }
-
-        return event.getMember().hasPermission(Permission.MESSAGE_MANAGE);
-    });
 }
