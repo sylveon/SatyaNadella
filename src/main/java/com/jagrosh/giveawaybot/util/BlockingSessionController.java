@@ -15,8 +15,8 @@
  */
 package com.jagrosh.giveawaybot.util;
 
+import com.neovisionaries.ws.client.OpeningHandshakeException;
 import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.utils.JDALogger;
 import net.dv8tion.jda.core.utils.SessionControllerAdapter;
 
 /**
@@ -25,7 +25,8 @@ import net.dv8tion.jda.core.utils.SessionControllerAdapter;
  */
 public class BlockingSessionController extends SessionControllerAdapter
 {
-    private final int MAX_DELAY = 60*1000;
+    private final long MIN_DELAY = 10000L; // 10 seconds
+    private final long MAX_DELAY = 40000L; // 40 seconds
     
     @Override
     protected void runWorker()
@@ -34,7 +35,7 @@ public class BlockingSessionController extends SessionControllerAdapter
         {
             if (workerHandle == null)
             {
-                workerHandle = new BlockingQueueWorker();
+                workerHandle = new BlockingQueueWorker(MIN_DELAY);
                 workerHandle.start();
             }
         }
@@ -42,6 +43,11 @@ public class BlockingSessionController extends SessionControllerAdapter
     
     protected class BlockingQueueWorker extends QueueWorker
     {
+        protected BlockingQueueWorker(long min)
+        {
+            super(min);
+        }
+        
         @Override
         public void run()
         {
@@ -56,20 +62,35 @@ public class BlockingSessionController extends SessionControllerAdapter
             }
             catch (InterruptedException ex)
             {
-                JDALogger.getLog(SessionControllerAdapter.class).error("Unable to backoff", ex);
+                log.error("Unable to backoff", ex);
             }
+            processQueue();
+            synchronized (lock)
+            {
+                workerHandle = null;
+                if (!connectQueue.isEmpty())
+                    runWorker();
+            }
+        }
+        
+        @Override
+        protected void processQueue()
+        {
+            boolean isMultiple = connectQueue.size() > 1;
             while (!connectQueue.isEmpty())
             {
                 SessionConnectNode node = connectQueue.poll();
                 try
                 {
-                    node.run(connectQueue.isEmpty());
+                    log.info("Attempting to start node: {}", node.getShardInfo().getShardId());
+                    node.run(isMultiple && connectQueue.isEmpty());
+                    isMultiple = true;
                     lastConnect = System.currentTimeMillis();
                     if (connectQueue.isEmpty())
                         break;
-                    if (this.delay > 0)
-                        Thread.sleep(this.delay);
-                    int total = 0;
+                    
+                    // block until we're fully loaded
+                    long total = 0;
                     while(node.getJDA().getStatus() != JDA.Status.CONNECTED 
                             && node.getJDA().getStatus() != JDA.Status.SHUTDOWN 
                             && total < MAX_DELAY)
@@ -77,18 +98,26 @@ public class BlockingSessionController extends SessionControllerAdapter
                         total += 100;
                         Thread.sleep(100);
                     }
+                    
+                    if (this.delay > 0)
+                        Thread.sleep(this.delay);
+                    log.info("Finished with delay of {}", System.currentTimeMillis() - lastConnect);
+                }
+                catch (IllegalStateException e)
+                {
+                    Throwable t = e.getCause();
+                    if (t instanceof OpeningHandshakeException)
+                        log.error("Failed opening handshake, appending to queue. Message: {}", e.getMessage());
+                    else
+                        log.error("Failed to establish connection for a node, appending to queue", e);
+                    appendSession(node);
                 }
                 catch (InterruptedException e)
                 {
-                    JDALogger.getLog(SessionControllerAdapter.class).error("Failed to run node", e);
+                    log.error("Failed to run node", e);
                     appendSession(node);
+                    return; // caller should start a new thread
                 }
-            }
-            synchronized (lock)
-            {
-                workerHandle = null;
-                if (!connectQueue.isEmpty())
-                    runWorker();
             }
         }
     }

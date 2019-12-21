@@ -20,19 +20,15 @@ import com.jagrosh.giveawaybot.database.Database;
 import com.jagrosh.giveawaybot.rest.EditedMessageAction;
 import com.jagrosh.giveawaybot.rest.RestJDA;
 import com.jagrosh.giveawaybot.util.FormatUtil;
+import com.jagrosh.giveawaybot.util.GiveawayUtil;
 import java.awt.Color;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.MessageBuilder;
 import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.MessageReaction;
-import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.exceptions.ErrorResponseException;
 import net.dv8tion.jda.core.exceptions.RateLimitedException;
 import net.dv8tion.jda.core.utils.MiscUtil;
@@ -48,19 +44,18 @@ public class Giveaway
     
     public static final Logger LOG = LoggerFactory.getLogger("REST");
     
-    public final long messageId;
-    public final long channelId;
-    public final long guildId;
+    public final long messageId, channelId, guildId, userId;
     public final Instant end;
     public final int winners;
     public final String prize;
     public final Status status;
     
-    public Giveaway(long messageId, long channelId, long guildId, Instant end, int winners, String prize, Status status)
+    public Giveaway(long messageId, long channelId, long guildId, long userId, Instant end, int winners, String prize, Status status)
     {
         this.messageId = messageId;
         this.channelId = channelId;
         this.guildId = guildId;
+        this.userId = userId;
         this.end = end;
         this.winners = winners;
         this.prize = prize==null ? null : prize.isEmpty() ? null : prize;
@@ -81,7 +76,9 @@ public class Giveaway
             eb.setColor(color);
         eb.setFooter((winners==1 ? "" : winners+" winners | ")+"Ends at",null);
         eb.setTimestamp(end);
-        eb.setDescription("React with "+Constants.TADA+" to enter!\nTime remaining: "+FormatUtil.secondsToTime(now.until(end, ChronoUnit.SECONDS)));
+        eb.setDescription("React with " + Constants.TADA + " to enter!"
+                + "\nTime remaining: " + FormatUtil.secondsToTime(now.until(end, ChronoUnit.SECONDS))
+                + "\nHosted by: <@" + userId + ">");
         if(prize!=null)
             eb.setAuthor(prize, null, null);
         if(close)
@@ -140,13 +137,18 @@ public class Giveaway
         else LOG.error("RestAction failure: ["+t+"] "+t.getMessage());
     }
     
+    private String messageLink()
+    {
+        return String.format("\n<https://discordapp.com/channels/%d/%d/%d>", guildId, channelId, messageId);
+    }
+    
     public void end(RestJDA restJDA)
     {
         MessageBuilder mb = new MessageBuilder();
         mb.append(Constants.YAY).append(" **GIVEAWAY ENDED** ").append(Constants.YAY);
         EmbedBuilder eb = new EmbedBuilder();
-        eb.setColor(new Color(0x36393F));
-        eb.setFooter((winners==1 ? "" : winners+" Winners | ")+"Ended at",null);
+        eb.setColor(new Color(0x36393F)); // dark theme background
+        eb.setFooter((winners==1 ? "" : winners+" Winners | ") + "Ended at",null);
         eb.setTimestamp(end);
         if(prize!=null)
             eb.setAuthor(prize, null, null);
@@ -154,7 +156,7 @@ public class Giveaway
         {
             List<Long> ids = restJDA.getReactionUsers(Long.toString(channelId), Long.toString(messageId), MiscUtil.encodeUTF8(Constants.REACTION))
                     .cache(true).stream().distinct().collect(Collectors.toList());
-            List<Long> wins = selectWinners(ids, winners);
+            List<Long> wins = GiveawayUtil.selectWinners(ids, winners);
             String toSend;
             if(wins.isEmpty())
             {
@@ -163,8 +165,8 @@ public class Giveaway
             }
             else if(wins.size()==1)
             {
-                eb.setDescription("Winner: <@"+wins.get(0)+">");
-                toSend = "Congratulations <@"+wins.get(0)+">! You won"+(prize==null ? "" : " the **"+prize+"**")+"!";
+                eb.setDescription("Winner: <@" + wins.get(0) + ">");
+                toSend = "Congratulations <@" + wins.get(0) + ">! You won" + (prize==null ? "" : " the **" + prize + "**") + "!";
             }
             else
             {
@@ -175,44 +177,15 @@ public class Giveaway
                     toSend+=", <@"+wins.get(i)+">";
                 toSend+="! You won"+(prize==null ? "" : " the **"+prize+"**")+"!";
             }
-            mb.setEmbed(eb.build());
+            mb.setEmbed(eb.appendDescription("\nHosted by: <@" + userId + ">").build());
             restJDA.editMessage(channelId, messageId, mb.build()).queue(m->{}, f->{});
-            restJDA.sendMessage(channelId, toSend).queue(m->{}, f->{});
+            restJDA.sendMessage(channelId, toSend + messageLink()).queue(m->{}, f->{});
         } 
         catch(Exception e) 
         {
-            eb.setDescription("Could not determine a winner!");
-            mb.setEmbed(eb.build());
+            mb.setEmbed(eb.setDescription("Could not determine a winner!\nHosted by: <@" + userId + ">").build());
             restJDA.editMessage(channelId, messageId, mb.build()).queue(m->{}, f->{});
-            restJDA.sendMessage(channelId, "A winner could not be determined!").queue(m->{}, f->{});
+            restJDA.sendMessage(channelId, "A winner could not be determined!" + messageLink()).queue(m->{}, f->{});
         }
-    }
-    
-    public static <T> List<T> selectWinners(List<T> list, int winners)
-    {
-        List<T> winlist = new LinkedList<>();
-        List<T> pullist = new LinkedList<>(list);
-        for(int i=0; i<winners && !pullist.isEmpty(); i++)
-        {
-            winlist.add(pullist.remove((int)(Math.random()*pullist.size())));
-        }
-        return winlist;
-    }
-    
-    public static void getSingleWinner(Message message, Consumer<User> success, Runnable failure, ExecutorService threadpool)
-    {
-        threadpool.submit(() -> {
-            try {
-                MessageReaction mr = message.getReactions().stream().filter(r -> r.getReactionEmote().getName().equals(Constants.TADA)).findAny().orElse(null);
-                List<User> users = new LinkedList<>();
-                mr.getUsers().stream().distinct().filter(u -> !u.isBot()).forEach(u -> users.add(u));
-                if(users.isEmpty())
-                    failure.run();
-                else
-                    success.accept(users.get((int)(Math.random()*users.size())));
-            } catch(Exception e) {
-                failure.run();
-            }
-        });
     }
 }

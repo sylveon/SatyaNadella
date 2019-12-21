@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.jagrosh</groupId>
     <artifactId>GiveawayBot</artifactId>
-    <version>2.3</version>
+    <version>2.4</version>
     <packaging>jar</packaging>
     
     <properties>
@@ -23,27 +23,24 @@
             <name>bintray</name>
             <url>https://dl.bintray.com/jagrosh/maven</url>
         </repository>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
     </repositories>
     
     <dependencies>
+        <dependency>
+	    <groupId>com.github.GiveawayBot</groupId>
+	    <artifactId>JDA-Lite</artifactId>
+	    <version>v3.8.105</version>
+	</dependency>
         <dependency>
             <groupId>com.jagrosh</groupId> 
             <artifactId>jda-utilities</artifactId> 
             <version>2.1.5</version>
             <type>pom</type>
         </dependency>
-        <dependency>
-            <groupId>net.dv8tion</groupId>
-            <artifactId>JDA</artifactId>
-            <version>3.8.3_462</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>club.minnced</groupId>
-                    <artifactId>opus-java</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <!-- Need this to handle working with some JDA internals -->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-collections4</artifactId>

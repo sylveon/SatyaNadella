@@ -27,6 +27,7 @@ public class Database extends DatabaseConnector
 {
     public final GiveawayManager giveaways;
     public final GuildSettingsManager settings;
+    public final PremiumManager premium;
     
     public Database (String host, String user, String pass) throws SQLException, ClassNotFoundException, InstantiationException, IllegalAccessException
     {
@@ -34,7 +35,13 @@ public class Database extends DatabaseConnector
         
         this.giveaways = new GiveawayManager(this);
         this.settings = new GuildSettingsManager(this);
+        this.premium = new PremiumManager(this);
         
         init();
+    }
+    
+    public boolean databaseCheck()
+    {
+        return this.giveaways.getGiveaways() != null;
     }
 }

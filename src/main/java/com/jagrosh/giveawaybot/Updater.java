@@ -25,6 +25,8 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
+import net.dv8tion.jda.webhook.WebhookClient;
+import net.dv8tion.jda.webhook.WebhookClientBuilder;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -47,6 +49,10 @@ public class Updater
         Database database = new Database(config.getString("database.host"), 
                                        config.getString("database.username"), 
                                        config.getString("database.password"));
+        
+        WebhookClient webhook = new WebhookClientBuilder(config.getString("webhook")).build();
+        
+        webhook.send(Constants.TADA + " Starting updater...");
         
         // migrate the old giveaways if the file exists
         //migrateGiveaways(database);
@@ -118,9 +124,27 @@ public class Updater
                 if(Instant.now().until(giveaway.end, ChronoUnit.MINUTES)>60)
                 {
                     giveaway.update(restJDA, database, Instant.now(), false);
-                    try{Thread.sleep(100);}catch(Exception ignore){} // stop hitting global ratelimits...
+                    try{Thread.sleep(120);}catch(Exception ignore){} // stop hitting global ratelimits...
                 }
             }
         }, 1, 1, TimeUnit.MINUTES);
+        
+        int[] dbfailures = {0};
+        schedule.scheduleWithFixedDelay(()->
+        {
+            if(!database.databaseCheck())
+            {
+                dbfailures[0]++;
+                if(dbfailures[0] < 3)
+                    webhook.send("\uD83D\uDE31 `Updater` has failed a database check ("+dbfailures[0]+")!"); // 😱
+                else
+                {
+                    webhook.send("\uD83D\uDE31 `Updater` has failed a database check ("+dbfailures[0]+")! Restarting..."); // 😱
+                    System.exit(0);
+                }
+            }
+            else
+                dbfailures[0] = 0;
+        }, 5, 5, TimeUnit.MINUTES);
     }
 }

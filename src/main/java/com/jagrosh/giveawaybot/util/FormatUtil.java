@@ -20,6 +20,9 @@ import java.util.Objects;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.Command.Category;
 import com.jagrosh.jdautilities.command.CommandEvent;
+import java.util.Collection;
+import java.util.HashMap;
+import net.dv8tion.jda.core.JDA;
 
 /**
  *
@@ -27,8 +30,25 @@ import com.jagrosh.jdautilities.command.CommandEvent;
  * 
  * @author John Grosh (john.a.grosh@gmail.com)
  */
-public class FormatUtil {
-    public static String pluralise(long x, String singular, String plural) {
+public class FormatUtil 
+{
+    public static String formatShardStatuses(Collection<JDA> shards)
+    {
+        HashMap<JDA.Status, String> map = new HashMap<>();
+        shards.forEach(jda -> map.put(jda.getStatus(), map.getOrDefault(jda.getStatus(), "") + " " + jda.getShardInfo().getShardId()));
+        StringBuilder sb = new StringBuilder("```diff");
+        map.entrySet().forEach(entry -> sb.append("\n").append(entry.getKey()==JDA.Status.CONNECTED ? "+ " : "- ").append(entry.getKey()).append(":").append(entry.getValue()));
+        /*shards.forEach(jda -> sb.append("\n")
+                .append(jda.getStatus()==JDA.Status.CONNECTED ? "+ " : "- ")
+                .append(jda.getShardInfo().getShardId() < 10 ? "0" : "")
+                .append(jda.getShardInfo().getShardId())
+                .append(": ").append(jda.getStatus()).append(" ~ ")
+                .append(jda.getGuildCache().size()).append(" guilds"));*/
+        return sb.append(" ```").toString();
+    }
+    
+    public static String pluralise(long x, String singular, String plural) 
+    {
         return x == 1 ? singular : plural;
     }
     
@@ -37,15 +57,20 @@ public class FormatUtil {
         StringBuilder builder = new StringBuilder(Constants.YAY+" __**"+event.getSelfUser().getName()+"** commands:__\n");
         Category category = null;
         for(Command command : event.getClient().getCommands())
-            if(!command.isOwnerCommand() || event.getAuthor().getId().equals(event.getClient().getOwnerId())){
-                if(!Objects.equals(category, command.getCategory())){
-                    category = command.getCategory();
-                    builder.append("\n\n  __").append(category==null ? "No Category" : category.getName()).append("__:\n");
-                }
-                builder.append("\n**").append(event.getClient().getPrefix()).append(command.getName())
-                        .append(command.getArguments()==null ? "**" : " "+command.getArguments()+"**")
-                        .append(" - ").append(command.getHelp());
+        {
+            if(command.isHidden())
+                continue;
+            if(command.isOwnerCommand() && !event.getAuthor().getId().equals(event.getClient().getOwnerId()))
+                continue;
+            if(!Objects.equals(category, command.getCategory()))
+            {
+                category = command.getCategory();
+                builder.append("\n\n  __").append(category==null ? "No Category" : category.getName()).append("__:\n");
             }
+            builder.append("\n**").append(event.getClient().getPrefix()).append(command.getName())
+                    .append(command.getArguments()==null ? "**" : " "+command.getArguments()+"**")
+                    .append(" - ").append(command.getHelp());
+        }
         builder.append("\n\nDo not include <> nor [] - <> means required and [] means optional."
                     + "\nFor additional help, contact "+Constants.OWNER+" or check out "+Constants.WEBSITE);
         return builder.toString();

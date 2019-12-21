@@ -23,7 +23,6 @@ import com.jagrosh.giveawaybot.database.Database;
 import java.awt.Color;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Role;
 import net.dv8tion.jda.core.entities.TextChannel;
@@ -34,12 +33,11 @@ import net.dv8tion.jda.core.entities.TextChannel;
  */
 public class GuildSettingsManager extends DataManager 
 {
-    
     public final static SQLColumn<Long> GUILD_ID = new LongColumn("GUILD_ID", false, 0, true);
     public final static SQLColumn<Integer> COLOR = new IntegerColumn("COLOR", false, Constants.BLURPLE.getRGB());
-    public final static SQLColumn<Long> DEFAULT_CHANNEL = new LongColumn("DEFAULT_CHANNEL", false, 0);
-    public final static SQLColumn<Long> MANAGER_ROLE = new LongColumn("MANAGER_ROLE", false, 0L);
-    public final static SQLColumn<String> EMOJI = new StringColumn("EMOJI", true, null, 60);
+    public final static SQLColumn<Long> DEFAULT_CHANNEL = new LongColumn("DEFAULT_CHANNEL", false, 0); // currently unused
+    public final static SQLColumn<Long> MANAGER_ROLE = new LongColumn("MANAGER_ROLE", false, 0L); // currently unused
+    public final static SQLColumn<String> EMOJI = new StringColumn("EMOJI", true, null, 60); // currently unused
     
     public GuildSettingsManager(Database connector)
     {
@@ -49,8 +47,7 @@ public class GuildSettingsManager extends DataManager
     public void updateColor(Guild guild)
     {
         int color = guild.getSelfMember().getColor()==null ? Constants.BLURPLE.getRGB() : guild.getSelfMember().getColor().getRGB();
-        try (Statement statement = getConnection().createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
-             ResultSet results = statement.executeQuery(selectAll(GUILD_ID.is(guild.getIdLong())));)
+        readWrite(selectAll(GUILD_ID.is(guild.getIdLong())), results -> 
         {
             if(results.next())
             {
@@ -64,24 +61,13 @@ public class GuildSettingsManager extends DataManager
                 COLOR.updateValue(results, color);
                 results.insertRow();
             }
-        } catch( SQLException e) {
-            e.printStackTrace();
-        }
+        });
     }
     
     public GuildSettings getSettings(long guildid)
     {
-        try (Statement statement = getConnection().createStatement();
-             ResultSet results = statement.executeQuery(selectAll(GUILD_ID.is(guildid)));)
-        {
-            if(results.next())
-                return new GuildSettings(results);
-            else
-                return new GuildSettings();
-        } catch( SQLException e) {
-            e.printStackTrace();
-            return null;
-        }
+        return read(selectAll(GUILD_ID.is(guildid)), 
+                results -> results.next() ? new GuildSettings(results) : new GuildSettings());
     }
     
     public class GuildSettings 
@@ -91,22 +77,27 @@ public class GuildSettingsManager extends DataManager
         private final long managerRole;
         public final String emoji;
         
-        private GuildSettings()
-        {
-            this(Constants.BLURPLE.getRGB(), 0, 0, null);
-        }
-        
         private GuildSettings(int color, long defaultChannel, long managerRole, String emoji)
         {
             this.color = new Color(color);
             this.defaultChannel = defaultChannel;
             this.managerRole = managerRole;
-            this.emoji = emoji;
+            this.emoji = emoji == null ? Constants.TADA : emoji;
+        }
+        
+        private GuildSettings()
+        {
+            this(Constants.BLURPLE.getRGB(), 0, 0, null);
         }
         
         private GuildSettings(ResultSet rs) throws SQLException
         {
             this(COLOR.getValue(rs), DEFAULT_CHANNEL.getValue(rs), MANAGER_ROLE.getValue(rs), EMOJI.getValue(rs));
+        }
+        
+        public String getEmojiDisplay()
+        {
+            return emoji;
         }
         
         public TextChannel getDefaultChannel(Guild guild)
