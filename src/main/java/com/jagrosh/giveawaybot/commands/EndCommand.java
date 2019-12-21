@@ -67,7 +67,7 @@ public class EndCommand extends GiveawayCommand
                         && msg.getReactions().stream().anyMatch(mr -> mr.getReactionEmote().getIdLong() == Constants.REACTION_ID && mr.getCount()>0)).findFirst().orElse(null);
                 if(m==null)
                     event.replyWarning("I couldn't find any recent giveaways in this channel.");
-                else    
+                else
                 {
                     GiveawayUtil.getSingleWinner(m, wins -> event.replySuccess("The new winner is "+wins.getAsMention()+"! Congratulations!"), 
                         () -> event.replyWarning("I couldn't determine a winner for that giveaway."), bot.getThreadpool());
