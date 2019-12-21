@@ -38,7 +38,7 @@ public abstract class GiveawayCommand extends Command
                 event.replyError("This command cannot be used in Direct Messages!");
                 return false;
             }
-            return false;
+            return true;
         });
     }
 }
