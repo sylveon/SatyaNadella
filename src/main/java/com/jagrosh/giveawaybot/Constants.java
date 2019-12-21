@@ -15,6 +15,7 @@
  */
 package com.jagrosh.giveawaybot;
 
+import com.jagrosh.jdautilities.command.Command;
 import java.awt.Color;
 import java.time.OffsetDateTime;
 import net.dv8tion.jda.core.Permission;
