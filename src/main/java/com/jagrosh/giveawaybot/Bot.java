@@ -181,7 +181,7 @@ public class Bot extends ListenerAdapter
     @Override
     public void onReady(ReadyEvent event)
     {
-        webhook.send(Constants.TADA_UTF + " Shard `"+(event.getJDA().getShardInfo().getShardId()+1)+"/"
+        webhook.send(Constants.TADA + " Shard `"+(event.getJDA().getShardInfo().getShardId()+1)+"/"
                 +event.getJDA().getShardInfo().getShardTotal()+"` has connected. Guilds: `"
                 +event.getJDA().getGuilds().size()+"` Users: `"+event.getJDA().getUsers().size()+"`");
     }
@@ -233,7 +233,7 @@ public class Bot extends ListenerAdapter
                         new ShutdownCommand(bot)
                 ).build();
         
-        bot.getWebhook().send(Constants.TADA_UTF + " Starting shards `"+(shardSetId*shardSetSize + 1) + " - " + ((shardSetId+1)*shardSetSize) + "` of `"+shardTotal+"`...");
+        bot.getWebhook().send(Constants.TADA + " Starting shards `"+(shardSetId*shardSetSize + 1) + " - " + ((shardSetId+1)*shardSetSize) + "` of `"+shardTotal+"`...");
         
         // start logging in
         bot.setShardManager(new DefaultShardManagerBuilder()
