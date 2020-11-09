@@ -17,33 +17,33 @@ package com.jagrosh.giveawaybot;
 
 import com.jagrosh.giveawaybot.commands.*;
 import com.jagrosh.giveawaybot.database.Database;
-import com.jagrosh.giveawaybot.entities.Giveaway;
-import com.jagrosh.giveawaybot.entities.Status;
-import com.jagrosh.giveawaybot.util.BlockingSessionController;
+import com.jagrosh.giveawaybot.entities.*;
 import com.jagrosh.giveawaybot.util.FormatUtil;
 import com.jagrosh.jdautilities.command.CommandClient;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
-import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.examples.command.PingCommand;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import java.time.Instant;
-import java.util.EnumSet;
+import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import net.dv8tion.jda.bot.sharding.DefaultShardManagerBuilder;
-import net.dv8tion.jda.bot.sharding.ShardManager;
-import net.dv8tion.jda.core.OnlineStatus;
-import net.dv8tion.jda.core.entities.*;
-import net.dv8tion.jda.core.events.ReadyEvent;
-import net.dv8tion.jda.core.events.guild.member.GuildMemberRoleAddEvent;
-import net.dv8tion.jda.core.events.guild.member.GuildMemberRoleRemoveEvent;
-import net.dv8tion.jda.core.events.role.update.RoleUpdateColorEvent;
-import net.dv8tion.jda.core.hooks.ListenerAdapter;
-import net.dv8tion.jda.core.utils.cache.CacheFlag;
-import net.dv8tion.jda.webhook.WebhookClient;
-import net.dv8tion.jda.webhook.WebhookClientBuilder;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.OnlineStatus;
+import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.Message.MentionType;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent;
+import net.dv8tion.jda.api.events.role.update.RoleUpdateColorEvent;
+import net.dv8tion.jda.api.exceptions.PermissionException;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.requests.GatewayIntent;
+import net.dv8tion.jda.api.requests.restaction.MessageAction;
+import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
+import net.dv8tion.jda.api.sharding.ShardManager;
+import net.dv8tion.jda.api.utils.ChunkingFilter;
+import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,52 +54,20 @@ import org.slf4j.LoggerFactory;
 public class Bot extends ListenerAdapter
 {
     private ShardManager shards; // list of all logins the bot has
+    
+    private final WebhookLog webhook;
     private final ScheduledExecutorService threadpool; // threadpool to use for timings
     private final Database database; // database
-    private final WebhookClient webhook;
     private final Logger LOG = LoggerFactory.getLogger("Bot");
-    private final int[] dbfailures = {0};
     
     private Bot(Database database, String webhookUrl)
     {
         this.database = database;
-        threadpool = Executors.newScheduledThreadPool(20);
-        webhook = new WebhookClientBuilder(webhookUrl).build();
+        this.threadpool = Executors.newScheduledThreadPool(20);
+        this.webhook = new WebhookLog(webhookUrl, System.getProperty("logname"));
         
-        threadpool.scheduleWithFixedDelay(()-> databaseCheck(), 5, 5, TimeUnit.MINUTES);
-        //threadpool.scheduleWithFixedDelay(()-> premiumUpdate(), 5, 5, TimeUnit.MINUTES);
-    }
-    
-    // scheduled processes
-    private void databaseCheck()
-    {
-        if(!database.databaseCheck())
-        {
-            dbfailures[0]++;
-            if(dbfailures[0] < 3)
-                webhook.send("\uD83D\uDE31 `"+System.getProperty("logname")+"` has failed a database check ("+dbfailures[0]+")!"); // 😱
-            else
-            {
-                webhook.send("\uD83D\uDE31 `"+System.getProperty("logname")+"` has failed a database check ("+dbfailures[0]+")! Restarting..."); // 😱
-                System.exit(0);
-            }
-        }
-        else
-            dbfailures[0] = 0;
-    }
-    
-    private void premiumUpdate()
-    {
-        if(shards == null)
-            return;
-        database.premium.updatePremiumLevels(shards.getGuildById(Constants.SERVER_ID));
-    }
-    
-    
-    // protected methods
-    protected void setShardManager(ShardManager shards)
-    {
-        this.shards = shards;
+        new Uptimer.DatabaseUptimer(this).start(this.threadpool);
+        new Uptimer.StatusUptimer(this).start(this.threadpool);
     }
     
     // public getters
@@ -113,7 +81,7 @@ public class Bot extends ListenerAdapter
         return threadpool;
     }
     
-    public WebhookClient getWebhook()
+    public WebhookLog getWebhookLog()
     {
         return webhook;
     }
@@ -178,13 +146,13 @@ public class Bot extends ListenerAdapter
             database.settings.updateColor(event.getGuild());
     }
 
-    @Override
+    /*@Override
     public void onReady(ReadyEvent event)
     {
         webhook.send(Constants.TADA + " Shard `"+(event.getJDA().getShardInfo().getShardId()+1)+"/"
                 +event.getJDA().getShardInfo().getShardTotal()+"` has connected. Guilds: `"
-                +event.getJDA().getGuilds().size()+"` Users: `"+event.getJDA().getUsers().size()+"`");
-    }
+                +event.getJDA().getGuilds().size() + "`");// + " Users: `"+event.getJDA().getUsers().size()+"`");
+    }//*/
     
     /**
      * Starts the application in Bot mode
@@ -203,25 +171,22 @@ public class Bot extends ListenerAdapter
                                        config.getString("database.password")), 
                           config.getString("webhook"));
         
-        // instantiate an event waiter
-        EventWaiter waiter = new EventWaiter(Executors.newSingleThreadScheduledExecutor(), false);
-        
         // build the client to deal with commands
         CommandClient client = new CommandClientBuilder()
-                .setPrefix("!g")
-                .setAlternativePrefix("g!")
+                .setPrefix(config.getString("prefix"))
+                .setAlternativePrefix(config.getString("altprefix"))
                 .setOwnerId("207123748120166400")
-                .setGame(Game.playing(Constants.TADA_UTF+" "+Constants.WEBSITE+" "+Constants.TADA_UTF+" Type !ghelp "+Constants.TADA_UTF))
+                .setActivity(Activity.playing(Constants.TADA_UTF+" "+Constants.WEBSITE+" "+Constants.TADA_UTF+" Type !ghelp "+Constants.TADA_UTF))
                 .setEmojis(Constants.TADA, Constants.WARNING, Constants.ERROR)
                 .setHelpConsumer(event -> event.replyInDm(FormatUtil.formatHelp(event), 
-                        m-> event.getMessage().addReaction(Constants.REACTION).queue(s->{},f->{}), 
+                        m-> {try{event.getMessage().addReaction(Constants.REACTION).queue(s->{},f->{});}catch(PermissionException ignored){}}, 
                         f-> event.replyWarning("Help could not be sent because you are blocking Direct Messages")))
                 .addCommands(
                         new AboutCommand(bot),
                         new InviteCommand(),
                         new PingCommand(),
                         
-                        new CreateCommand(bot,waiter),
+                        new CreateCommand(bot),
                         new StartCommand(bot),
                         new EndCommand(bot),
                         new RerollCommand(bot),
@@ -233,18 +198,21 @@ public class Bot extends ListenerAdapter
                         new ShutdownCommand(bot)
                 ).build();
         
-        bot.getWebhook().send(Constants.TADA + " Starting shards `"+(shardSetId*shardSetSize + 1) + " - " + ((shardSetId+1)*shardSetSize) + "` of `"+shardTotal+"`...");
+        bot.webhook.send(WebhookLog.Level.INFO, "Starting shards `"+(shardSetId*shardSetSize + 1) + " - " + ((shardSetId+1)*shardSetSize) + "` of `"+shardTotal+"`...");
+        
+        MessageAction.setDefaultMentions(Arrays.asList(MentionType.CHANNEL, MentionType.EMOTE, MentionType.USER));
         
         // start logging in
-        bot.setShardManager(new DefaultShardManagerBuilder()
-                .setToken(config.getString("bot-token"))
-                .setAudioEnabled(false)
-                .setGame(Game.playing("loading..."))
+        bot.shards = DefaultShardManagerBuilder
+                .createLight(config.getString("bot-token"), GatewayIntent.DIRECT_MESSAGES, GatewayIntent.GUILD_MESSAGES/*, GatewayIntent.GUILD_MEMBERS*/) // I guess we just dont get role changes? what the heck discord
+                .setShardsTotal(shardTotal)
+                .setShards(shardSetId*shardSetSize, (shardSetId+1)*shardSetSize-1)
+                .setActivity(Activity.playing("loading..."))
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
-                .addEventListeners(client, waiter, bot)
-                .setSessionController(new BlockingSessionController())
-                .setDisabledCacheFlags(EnumSet.of(CacheFlag.VOICE_STATE, CacheFlag.GAME, CacheFlag.EMOTE))
-                .setCompressionEnabled(true)
-                .build());
+                .addEventListeners(client, bot, new MessageWaiter())
+                .enableCache(CacheFlag.MEMBER_OVERRIDES)
+                .setChunkingFilter(ChunkingFilter.NONE)
+                .build();
+        
     }
 }

@@ -23,8 +23,8 @@ import com.jagrosh.giveawaybot.entities.PremiumLevel;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Role;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Role;
 
 /**
  *
@@ -47,7 +47,7 @@ public class PremiumManager extends DataManager
     
     public void updatePremiumLevels(Guild premiumGuild)
     {
-        if(premiumGuild == null || !premiumGuild.isAvailable() || premiumGuild.getMemberCache().size()==0)
+        if(premiumGuild == null || !premiumGuild.isLoaded() || premiumGuild.getMemberCache().size()==0)
             return;
         // make a map of all users that have premium levels
         Map<Long, PremiumLevel> map = new HashMap<>();
