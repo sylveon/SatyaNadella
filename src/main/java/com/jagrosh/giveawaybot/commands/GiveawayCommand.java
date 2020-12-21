@@ -16,6 +16,7 @@
 package com.jagrosh.giveawaybot.commands;
 
 import com.jagrosh.giveawaybot.Bot;
+import com.jagrosh.giveawaybot.entities.PremiumLevel;
 import com.jagrosh.jdautilities.command.Command;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.ChannelType;
@@ -27,6 +28,7 @@ import net.dv8tion.jda.api.entities.ChannelType;
 public abstract class GiveawayCommand extends Command
 {
     protected final Bot bot;
+    protected boolean needsPremium = false;
     
     protected GiveawayCommand(Bot bot)
     {

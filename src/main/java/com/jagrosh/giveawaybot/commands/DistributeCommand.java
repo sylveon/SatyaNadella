@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 John Grosh (john.a.grosh@gmail.com).
+ * Copyright 2020 John Grosh (john.a.grosh@gmail.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,41 +23,84 @@ import com.jagrosh.giveawaybot.util.FormatUtil;
 import com.jagrosh.giveawaybot.util.OtherUtil;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
-import net.dv8tion.jda.api.Permission;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.exceptions.PermissionException;
 
 /**
  *
  * @author John Grosh (john.a.grosh@gmail.com)
  */
-public class StartCommand extends GiveawayCommand
+public class DistributeCommand extends GiveawayCommand
 {
-    private final static String EXAMPLE = "\nExample usage: `!gstart 30m 5w Awesome T-Shirt`";
+    private final static String EXAMPLE = "\nExample usage: `!gstart-distributed #channel1 #channel2 30m 3w Your Prize Here`";
+    private final static Pattern CHANNEL = Pattern.compile("\\s*<?#?(\\d{17,20})>?");
     
-    public StartCommand(Bot bot)
+    public DistributeCommand(Bot bot)
     {
         super(bot);
-        name = "start";
-        help = "starts a giveaway (quick setup)";
-        arguments = "<time> [winners]w [prize]";
-        botPermissions = new Permission[]{Permission.MESSAGE_HISTORY,Permission.MESSAGE_ADD_REACTION,Permission.MESSAGE_EMBED_LINKS};
+        name = "start-distributed";
+        help = "starts a giveaway, distributed across channels";
+        arguments = "<channels> <time> [winners]w [prize]";
+        hidden = true;
+        cooldown = 10;
+        needsPremium = true;
     }
     
     @Override
-    protected void execute(CommandEvent event) 
+    protected void execute(CommandEvent event)
     {
-        // check permissions
-        if(!Constants.canSendGiveaway(event.getTextChannel()))
+        // get all channels
+        Matcher m = CHANNEL.matcher(event.getArgs());
+        List<Long> list = new ArrayList<>();
+        int index = 0;
+        while(m.find())
         {
-            event.replyError("I cannot start a giveaway here; please make sure I have the following permissions:\n\n"+Constants.PERMS);
+            list.add(Long.parseLong(m.group(1)));
+            index = m.end();
+        }
+        if(list.isEmpty())
+        {
+            event.replyError("Please include at least one text channel!");
+            return;
+        }
+        String args = event.getArgs().substring(index);
+        
+        // check for valid text channels
+        List<TextChannel> tcs = new ArrayList<>();
+        for(long id: list)
+        {
+            TextChannel tc = event.getGuild().getTextChannelById(id);
+            if(tc == null)
+            {
+                event.replyError("`" + id + "` is not a valid channel in this guild!");
+                return;
+            }
+            tcs.add(tc);
+        }
+        
+        if(tcs.size() < 2)
+        {
+            event.replyError("Please include at least 2 channels for a distributed giveaway!");
+            return;
+        }
+        
+        // check permissions
+        TextChannel noperms = tcs.stream().filter(tc -> !Constants.canSendGiveaway(tc)).findFirst().orElse(null);
+        if(noperms != null)
+        {
+            event.replyError("I cannot start a giveaway in " + noperms.getAsMention() + "; please make sure I have the following permissions:\n\n"+Constants.PERMS);
             return;
         }
         
         // check channel type
-        if(event.getTextChannel().isNews())
+        TextChannel isnews = tcs.stream().filter(tc -> tc.isNews()).findFirst().orElse(null);
+        if(isnews != null)
         {
-            event.replyError("Giveaways cannot be created in announcements channels!");
+            event.replyError("Giveaways cannot be created in announcements channels (" + isnews.getAsMention() + ")!");
             return;
         }
         
@@ -69,7 +112,7 @@ public class StartCommand extends GiveawayCommand
         }
         
         // parse and check length of time
-        String[] parts = event.getArgs().split("\\s+", 2);
+        String[] parts = args.trim().split("\\s+", 2);
         int seconds = OtherUtil.parseShortTime(parts[0]);
         if(seconds==-1)
         {
@@ -107,22 +150,16 @@ public class StartCommand extends GiveawayCommand
             return;
         }
         
-        if(item.length()>250)
-        {
-            event.replyWarning("Ack! That prize is too long. Can you shorten it a bit?");
-            return;
-        }
-        
         // check for too many giveaways runnning
-        List<Giveaway> list = level.perChannelMaxGiveaways 
-                ? bot.getDatabase().giveaways.getGiveaways(event.getTextChannel()) 
+        List<Giveaway> existing = level.perChannelMaxGiveaways 
+                ? bot.getDatabase().giveaways.getGiveaways(tcs.get(0)) 
                 : bot.getDatabase().giveaways.getGiveaways(event.getGuild());
-        if(list == null)
+        if(existing == null)
         {
             event.replyError("An error occurred when trying to start giveaway.");
             return;
         }
-        else if(list.size() >= level.maxGiveaways)
+        else if(existing.size() >= level.maxGiveaways)
         {
             event.replyError("There are already " + level.maxGiveaways + " giveaways running in this " 
                     + (level.perChannelMaxGiveaways ? "channel" : "server") + "!");
@@ -138,7 +175,6 @@ public class StartCommand extends GiveawayCommand
         
         // start the giveaway
         Instant now = event.getMessage().getTimeCreated().toInstant();
-        bot.startGiveaway(event.getTextChannel(), event.getAuthor(), now, seconds, winners, item);
+        bot.startGiveaway(tcs.get(0), tcs.subList(1, tcs.size()), event.getAuthor(), now, seconds, winners, item);
     }
-    
 }

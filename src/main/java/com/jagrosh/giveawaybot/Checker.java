@@ -18,12 +18,16 @@ package com.jagrosh.giveawaybot;
 import club.minnced.discord.webhook.WebhookClient;
 import club.minnced.discord.webhook.WebhookClientBuilder;
 import com.jagrosh.giveawaybot.database.Database;
+import com.jagrosh.giveawaybot.database.managers.PremiumManager.Summary;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import java.util.EnumSet;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
+import net.dv8tion.jda.api.requests.GatewayIntent;
+import net.dv8tion.jda.api.utils.ChunkingFilter;
+import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import org.slf4j.LoggerFactory;
 
@@ -53,13 +57,16 @@ public class Checker
         WebhookClient webhook = new WebhookClientBuilder(config.getString("webhook")).build();
         webhook.send(Constants.TADA + " Starting checker...");
         
-        JDA jda = new JDABuilder(config.getString("checker-token"))
+        JDA jda = JDABuilder.createDefault(config.getString("checker-token"), GatewayIntent.GUILD_MEMBERS)
                 .setStatus(OnlineStatus.IDLE)
-                .setDisabledCacheFlags(EnumSet.of(CacheFlag.ACTIVITY, CacheFlag.CLIENT_STATUS, 
-                                                  CacheFlag.EMOTE, CacheFlag.VOICE_STATE))
+                .setMemberCachePolicy(MemberCachePolicy.ALL)
+                .setChunkingFilter(ChunkingFilter.ALL)
+                .disableCache(EnumSet.of(CacheFlag.ACTIVITY, CacheFlag.CLIENT_STATUS, 
+                        CacheFlag.EMOTE, CacheFlag.VOICE_STATE))
                 .build().awaitReady();
         
-        webhook.send(Constants.TADA + " Checker ready! `" + premiumServerId + "`");
+        webhook.send(Constants.TADA + " Checker ready! `" + premiumServerId + "` ~ `" 
+                + jda.getGuildById(premiumServerId).getMemberCache().size() + "`");
         
         // main checker loop
         while(true)
@@ -67,7 +74,9 @@ public class Checker
             Thread.sleep(1000 * 60);
             
             // update premium levels
-            database.premium.updatePremiumLevels(jda.getGuildById(premiumServerId));
+            Summary sum = database.premium.updatePremiumLevels(jda.getGuildById(premiumServerId));
+            if(!sum.isEmpty())
+                webhook.send("**Premium Update** " + sum.toString());
         }
     }
 }
