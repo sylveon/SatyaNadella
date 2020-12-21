@@ -203,6 +203,7 @@ public class Giveaway
                     toSend += ", <@"+wins.get(i)+">";
                 toSend += "! You won" + (prize == null ? "" : " the **" + prize + "**") + "!";
             }
+            toSend += "\nHosted by: <@" + userId + ">";
             mb.setEmbed(eb.appendDescription("\nHosted by: <@" + userId + ">").build());
 
         } 
