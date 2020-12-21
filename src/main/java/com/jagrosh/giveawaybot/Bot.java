@@ -112,6 +112,7 @@ public class Bot extends ListenerAdapter
         channel.sendMessage(msg).queue(m -> 
         {
             m.addReaction(Constants.REACTION).queue();
+            m.pin().queue(ree->{}, f->{});
             database.giveaways.createGiveaway(m, creator, end, winners, prize, false);
         }, v -> LOG.warn("Unable to start giveaway: "+v));
         return true;

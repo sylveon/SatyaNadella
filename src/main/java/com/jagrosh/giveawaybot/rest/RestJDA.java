@@ -18,9 +18,11 @@ package com.jagrosh.giveawaybot.rest;
 import javax.annotation.CheckReturnValue;
 import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.internal.JDAImpl;
 import net.dv8tion.jda.internal.entities.GuildImpl;
 import net.dv8tion.jda.internal.entities.TextChannelImpl;
+import net.dv8tion.jda.internal.requests.RestActionImpl;
 import net.dv8tion.jda.internal.requests.Route;
 import net.dv8tion.jda.internal.utils.Checks;
 import net.dv8tion.jda.internal.utils.config.AuthorizationConfig;
@@ -75,5 +77,12 @@ public class RestJDA
     public RestReactionPaginationAction getReactionUsers(long channelId, long messageId, String code)
     {
         return new RestReactionPaginationAction(new RestMessage(internalJDA, messageId, channelId), code);
+    }
+
+    @CheckReturnValue
+    public RestAction<Void> unpinMessage(long channelId, long messageId)
+    {
+        Route.CompiledRoute route = Route.Messages.REMOVE_PINNED_MESSAGE.compile(Long.toString(channelId), Long.toString(messageId));
+        return new RestActionImpl<Void>(internalJDA, route);
     }
 }

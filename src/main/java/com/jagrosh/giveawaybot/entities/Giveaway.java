@@ -214,10 +214,12 @@ public class Giveaway
         Message msg = mb.build();
         String toSendF = toSend;
         restJDA.editMessage(channelId, messageId, msg).queue(m->{}, f->{});
+        restJDA.unpinMessage(channelId, messageId).queue(m->{}, f->{});
         restJDA.sendMessage(channelId, toSendF + messageLink()).queue(m->{}, f->{});
         additional.forEach((chid, msgid) -> 
         {
             restJDA.editMessage(chid, msgid, msg).queue(m -> {}, f -> {});
+            restJDA.unpinMessage(chid, msgid).queue(m->{}, f->{});
             restJDA.sendMessage(chid, toSendF).queue(m -> {}, f -> {});
         });
     }
