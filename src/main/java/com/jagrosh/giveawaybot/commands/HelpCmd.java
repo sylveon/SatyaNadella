@@ -57,7 +57,7 @@ public class HelpCmd extends GBCommand
                         .addField(LocalizedMessage.INFO_HELP_GENERAL.getLocalizedMessage(wl), 
                                   "`" + prefix + "about`"
                               + "\n`" + prefix + "ping`"
-                              //+ "\n`" + prefix + "invite`", false)
+                              /*+ "\n`" + prefix + "invite`"*/, false)
                         .addField(LocalizedMessage.INFO_HELP_CREATION.getLocalizedMessage(wl), 
                                   "`" + prefix + "start`"
                               + "\n`" + prefix + "create`", false)

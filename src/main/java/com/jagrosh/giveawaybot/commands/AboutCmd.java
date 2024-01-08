@@ -56,7 +56,7 @@ public class AboutCmd extends GBCommand
                 .setContent(YAY + " " + LocalizedMessage.INFO_ABOUT.getLocalizedMessage(wl, "**GiveawayBot**") + " " + YAY)
                 .addEmbed(new Embed.Builder()
                         .setTitle(LocalizedMessage.INFO_ABOUT_BRIEF.getLocalizedMessage(wl), null)
-                        .setColor(new Color(0x5865F2))
+                        .setColor(Constants.BLURPLE)
                         .setDescription(LocalizedMessage.INFO_ABOUT_LONG.getLocalizedMessage(wl))
                         .addField(STATS + LocalizedMessage.INFO_ABOUT_STATS.getLocalizedMessage(wl), 
                                       LocalizedMessage.INFO_ABOUT_STATS_GIVEAWAYS.getLocalizedMessage(wl, bot.getDatabase().countAllGiveaways()) 
