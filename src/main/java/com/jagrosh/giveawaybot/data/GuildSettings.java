@@ -106,7 +106,7 @@ public class GuildSettings
 
     public String getEmoji()
     {
-        return emoji == null ? Constants.TADA : emoji;
+        return emoji == null ? Constants.YAY : emoji;
     }
 
     public void setEmoji(String emoji)

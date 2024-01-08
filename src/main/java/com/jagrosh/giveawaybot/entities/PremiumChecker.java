@@ -66,7 +66,7 @@ public class PremiumChecker
     
     public void start() throws LoginException, InterruptedException
     {
-        webhook.send(WebhookLog.Level.INFO, Constants.TADA + " Starting premium checker...");
+        webhook.send(WebhookLog.Level.INFO, Constants.YAY + " Starting premium checker...");
         jda = JDABuilder.createDefault(botToken, GatewayIntent.GUILD_MEMBERS)
                 .setStatus(OnlineStatus.ONLINE)
                 .setMemberCachePolicy(MemberCachePolicy.ALL)
@@ -81,7 +81,7 @@ public class PremiumChecker
             {
                 if(event instanceof ReadyEvent)
                 {
-                    webhook.send(WebhookLog.Level.INFO, Constants.TADA + " Checker ready! `" + jda.getGuildById(PremiumLevel.SERVER_ID).getMemberCache().size() + "`");
+                    webhook.send(WebhookLog.Level.INFO, Constants.YAY + " Checker ready! `" + jda.getGuildById(PremiumLevel.SERVER_ID).getMemberCache().size() + "`");
                     schedule.scheduleWithFixedDelay(() -> update(), 0, 10, TimeUnit.MINUTES);
                 }
             }

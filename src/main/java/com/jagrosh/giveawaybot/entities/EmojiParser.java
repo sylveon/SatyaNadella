@@ -43,7 +43,7 @@ public class EmojiParser
     public ParsedEntryButton parse(String text)
     {
         if(text == null)
-            return new ParsedEntryButton(Constants.TADA);
+            return new ParsedEntryButton(Constants.YAY);
         
         for(int i = text.length(); i>0; i--)
         {
