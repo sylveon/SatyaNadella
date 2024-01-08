@@ -237,7 +237,7 @@ public class GiveawayManager
             }
             
             database.createGiveaway(giveaway);
-            rest.request(new PinRoute(rm.getChannelId(), rm.getIdLong(), Route.Type.PUT)).get();
+            rest.request(new PinRoute(rm.getChannelId(), rm.getIdLong(), Route.Type.PUT), "{}").get();
             return giveaway.getMessageId();
         }
         catch(InterruptedException | ExecutionException ex)
