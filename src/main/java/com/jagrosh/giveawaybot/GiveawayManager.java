@@ -22,6 +22,7 @@ import com.jagrosh.giveawaybot.data.GuildSettings;
 import com.jagrosh.giveawaybot.entities.EmojiParser;
 import com.jagrosh.giveawaybot.entities.FileUploader;
 import com.jagrosh.giveawaybot.entities.LocalizedMessage;
+import com.jagrosh.giveawaybot.entities.PinRoute;
 import com.jagrosh.giveawaybot.entities.PremiumLevel;
 import com.jagrosh.giveawaybot.util.FormatUtil;
 import com.jagrosh.giveawaybot.util.GiveawayUtil;
@@ -144,7 +145,7 @@ public class GiveawayManager
             String summaryKey = url == null ? null : url.replaceAll(".*/(\\d+/\\d+)/.*", "$1");
             rest.request(Route.PATCH_MESSAGE.format(giveaway.getChannelId(), giveaway.getMessageId()), renderGiveaway(giveaway, entries.size(), winners, summaryKey).toJson()).get();
             rest.request(Route.POST_MESSAGE.format(giveaway.getChannelId()), renderWinnerMessage(giveaway, winners).toJson()).get();
-            rest.simpleRequest(Route.BASE_URL + String.format("channels/%d/pins/%d", giveaway.getChannelId(), giveaway.getMessageId()), Route.Type.DELETE).get();
+            rest.request(new PinRoute(giveaway.getChannelId(), giveaway.getMessageId(), Route.Type.DELETE)).get();
         }
         catch(ExecutionException | InterruptedException ex)
         {
@@ -236,7 +237,7 @@ public class GiveawayManager
             }
             
             database.createGiveaway(giveaway);
-            rest.simpleRequest(Route.BASE_URL + String.format("channels/%d/pins/%d", rm.getChannelId(), rm.getIdLong()), Route.Type.PUT).get();
+            rest.request(new PinRoute(rm.getChannelId(), rm.getIdLong(), Route.Type.PUT)).get();
             return giveaway.getMessageId();
         }
         catch(InterruptedException | ExecutionException ex)
@@ -311,7 +312,7 @@ public class GiveawayManager
     
     private ButtonComponent createEntryButton(EmojiParser.ParsedEntryButton pe)
     {
-        return new ButtonComponent(ButtonComponent.Style.SUCCESS, pe.text, 
+        return new ButtonComponent(ButtonComponent.Style.SECONDARY, pe.text, 
                     pe.hasEmoji() ? new PartialEmoji(pe.name, pe.id, pe.animated) : null, 
                     ENTER_BUTTON_ID, null, false);
     }
