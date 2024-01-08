@@ -106,7 +106,7 @@ public class GuildSettings
 
     public String getEmoji()
     {
-        return emoji == null ? Constants.YAY : emoji;
+        return emoji == null ? "<:mspartyhc:1193768488930643999>" : emoji;
     }
 
     public void setEmoji(String emoji)

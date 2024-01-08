@@ -63,7 +63,7 @@ public class RerollMessageCmd extends GBCommand
     
     protected InteractionResponse rerollGiveaway(Interaction interaction, ReceivedMessage msg, int count)
     {
-        String summaryKey;
+        String url;
         try
         {
             // check if the message is from the bot
@@ -72,12 +72,11 @@ public class RerollMessageCmd extends GBCommand
 
             // check if the message is a giveaway by attempting to get the reroll key
             ActionRowComponent arc = (ActionRowComponent) msg.getComponents().get(0);
-            String url = arc.getComponents().stream()
+            url = arc.getComponents().stream()
                     .map(c -> (ButtonComponent) c)
                     .filter(b -> b.getUrl() != null)
                     .map(b -> b.getUrl())
                     .findFirst().orElse(null);
-            summaryKey = url.substring(url.lastIndexOf(KEY) + KEY.length());
         }
         catch(Exception ex)
         {
@@ -85,7 +84,6 @@ public class RerollMessageCmd extends GBCommand
         }
         
         // reroll
-        String url = "https://cdn.discordapp.com/attachments/" + summaryKey + "/giveaway_summary.json";
         try
         {
             RestClient.RestResponse res = bot.getRestClient().simpleRequest(url).get();

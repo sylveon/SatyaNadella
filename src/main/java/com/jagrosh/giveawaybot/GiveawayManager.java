@@ -142,8 +142,7 @@ public class GiveawayManager
         {
             JSONObject summary = createGiveawaySummary(giveaway, host, entries, winners);
             String url = uploader.uploadFile(summary.toString(), "giveaway_summary.json");
-            String summaryKey = url == null ? null : url.replaceAll(".*/(\\d+/\\d+)/.*", "$1");
-            rest.request(Route.PATCH_MESSAGE.format(giveaway.getChannelId(), giveaway.getMessageId()), renderGiveaway(giveaway, entries.size(), winners, summaryKey).toJson()).get();
+            rest.request(Route.PATCH_MESSAGE.format(giveaway.getChannelId(), giveaway.getMessageId()), renderGiveaway(giveaway, entries.size(), winners, url).toJson()).get();
             rest.request(Route.POST_MESSAGE.format(giveaway.getChannelId()), renderWinnerMessage(giveaway, winners).toJson()).get();
             rest.request(new PinRoute(giveaway.getChannelId(), giveaway.getMessageId(), Route.Type.DELETE)).get();
         }
@@ -271,7 +270,7 @@ public class GiveawayManager
         if(winners == null)
             sb.addComponent(new ActionRowComponent(createEntryButton(emojis.parse(gs.getEmoji()))));
         else if(summaryKey != null)
-            sb.addComponent(new ActionRowComponent(new ButtonComponent(LocalizedMessage.GIVEAWAY_SUMMARY.getLocalizedMessage(gs.getLocale()), Constants.SUMMARY + "#giveaway=" + summaryKey)));
+            sb.addComponent(new ActionRowComponent(new ButtonComponent(LocalizedMessage.GIVEAWAY_SUMMARY.getLocalizedMessage(gs.getLocale()), summaryKey)));
         else
             sb.removeComponents();
         return sb.build();
