@@ -269,8 +269,6 @@ public class GiveawayManager
                         .setDescription(message).build());
         if(winners == null)
             sb.addComponent(new ActionRowComponent(createEntryButton(emojis.parse(gs.getEmoji()))));
-        else if(summaryKey != null)
-            sb.addComponent(new ActionRowComponent(new ButtonComponent(LocalizedMessage.GIVEAWAY_SUMMARY.getLocalizedMessage(gs.getLocale()), Constants.SUMMARY + "#giveaway=" + summaryKey)));
         else
             sb.removeComponents();
         return sb.build();
