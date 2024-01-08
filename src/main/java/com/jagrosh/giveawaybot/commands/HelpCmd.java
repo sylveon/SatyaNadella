@@ -15,6 +15,7 @@
  */
 package com.jagrosh.giveawaybot.commands;
 
+import com.jagrosh.giveawaybot.Constants;
 import com.jagrosh.giveawaybot.GiveawayBot;
 import com.jagrosh.giveawaybot.entities.LocalizedMessage;
 import com.jagrosh.interactions.command.ApplicationCommand;
