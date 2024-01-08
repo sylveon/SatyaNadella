@@ -75,7 +75,6 @@ public class ServerCountUpdater
             serverCount = guilds;
             
             // post guild count
-            /*
             JSONObject json = new JSONObject()
                     .put("server_count", guilds)
                     .put("bot_id", Long.toString(bot.getBotId()));
@@ -85,7 +84,6 @@ public class ServerCountUpdater
                 res2.getBody().getJSONObject("failure").toMap().forEach((site,val) -> log.warn(String.format("Updating server count for '%s' failed: %s", site, val)));
             else
                 log.warn("Updating server counts failed: " + res2.getBody().toString());
-                */
         }
         catch(Exception ex)
         {

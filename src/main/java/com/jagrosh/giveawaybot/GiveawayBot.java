@@ -75,7 +75,7 @@ public class GiveawayBot
         premium = new PremiumChecker(database, webhook, config.getString("checker-token"));
         manager = new GiveawayManager(database, restClient, uploader, emojis, botId);
         uptimer = new Uptimer(this);
-        countUpdater = new ServerCountUpdater(this, null); //config.getConfig("bot-lists").entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().unwrapped().toString())));
+        countUpdater = new ServerCountUpdater(this, config.getConfig("bot-lists").entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().unwrapped().toString())));
         
         // instantiate commands
         Command[] commands = 
