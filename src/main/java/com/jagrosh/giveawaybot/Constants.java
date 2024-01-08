@@ -31,7 +31,7 @@ public class Constants
     public static final String ERROR    = "\uD83D\uDCA5"; // 💥
     public static final String YAY      = "<a:msparty:1193708878265864224>";//"<a:msparty:1193708878265864224>";
     public static final String REACTION = "a:msparty:1193708878265864224";//"a:msparty:1193708878265864224
-    public static final Color  BLURPLE  = Color.decode("#7289DA");
+    public static final Color  BLURPLE  = Color.decode("#84EB2F");
     public static final Color  GRAY     = new Color(0x2F3136);
     public static final String WEBSITE  = "https://giveawaybot.party";
     public static final String INVITE   = WEBSITE + "/invite";
