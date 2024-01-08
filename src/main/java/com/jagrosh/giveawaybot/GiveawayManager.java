@@ -144,6 +144,7 @@ public class GiveawayManager
             String summaryKey = url == null ? null : url.replaceAll(".*/(\\d+/\\d+)/.*", "$1");
             rest.request(Route.PATCH_MESSAGE.format(giveaway.getChannelId(), giveaway.getMessageId()), renderGiveaway(giveaway, entries.size(), winners, summaryKey).toJson()).get();
             rest.request(Route.POST_MESSAGE.format(giveaway.getChannelId()), renderWinnerMessage(giveaway, winners).toJson()).get();
+            rest.simpleRequest(Route.BASE_URL + String.format("channels/%d/pins/%d", giveaway.getChannelId(), giveaway.getMessageId()), Route.Type.DELETE);
         }
         catch(ExecutionException | InterruptedException ex)
         {
@@ -235,6 +236,7 @@ public class GiveawayManager
             }
             
             database.createGiveaway(giveaway);
+            rest.simpleRequest(Route.BASE_URL + String.format("channels/%d/pins/%d", rm.getChannelId(), rm.getIdLong()), Route.Type.PUT);
             return giveaway.getMessageId();
         }
         catch(InterruptedException | ExecutionException ex)
@@ -259,6 +261,7 @@ public class GiveawayManager
                 + "\n" + LocalizedMessage.GIVEAWAY_ENTRIES.getLocalizedMessage(gs.getLocale()) + ": **" + numEntries + "**"
                 + "\n" + LocalizedMessage.GIVEAWAY_WINNERS.getLocalizedMessage(gs.getLocale()) + ": " + (winners == null ? "**" + giveaway.getWinners() + "**" : renderWinners(winners));
         SentMessage.Builder sb = new SentMessage.Builder()
+                .setContent("<@&1169336992455200820>")
                 .addEmbed(new Embed.Builder()
                         .setTitle(giveaway.getPrize(), null)
                         .setColor(winners == null ? gs.getColor() : ENDED_COLOR)

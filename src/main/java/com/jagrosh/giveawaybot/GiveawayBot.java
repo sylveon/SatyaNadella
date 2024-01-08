@@ -83,7 +83,7 @@ public class GiveawayBot
             new HelpCmd(this),
             new AboutCmd(this),
             new PingCmd(this),
-            new InviteCmd(this),
+            //new InviteCmd(this),
             
             new StartCmd(this),
             new CreateCmd(this),

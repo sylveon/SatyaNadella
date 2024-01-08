@@ -25,13 +25,13 @@ import java.time.OffsetDateTime;
 public class Constants 
 {
     public static final OffsetDateTime STARTUP = OffsetDateTime.now();
-    public static final long  SERVER_ID = 585687812548853760L;
+    public static final long  SERVER_ID = 249898465004486658L;
     public static final String TADA     = "\uD83C\uDF89"; // 🎉
     public static final String WARNING  = "\uD83D\uDCA5"; // 💥
     public static final String ERROR    = "\uD83D\uDCA5"; // 💥
-    public static final String YAY      = "<:yay:585696613507399692>";//"<:yay:440620097543864320>";
-    public static final String REACTION = "yay:585696613507399692";//"yay:440620097543864320";
-    public static final Color  BLURPLE  = new Color(0x5865F2);
+    public static final String YAY      = "<a:msparty:1193708878265864224>";//"<a:msparty:1193708878265864224>";
+    public static final String REACTION = "a:msparty:1193708878265864224";//"a:msparty:1193708878265864224
+    public static final Color  BLURPLE  = Color.decode("#7289DA");
     public static final Color  GRAY     = new Color(0x2F3136);
     public static final String WEBSITE  = "https://giveawaybot.party";
     public static final String INVITE   = WEBSITE + "/invite";
