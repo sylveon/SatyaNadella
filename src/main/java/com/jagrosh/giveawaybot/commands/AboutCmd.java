@@ -33,7 +33,7 @@ import java.awt.Color;
  */
 public class AboutCmd extends GBCommand
 {
-    private final static String YAY = "<:yay:585696613507399692>";
+    private final static String YAY = "<a:msparty:1193708878265864224>";
     private final static String STATS = "\uD83D\uDCCA "; // 📊
     private final static String LINKS = "\uD83C\uDF10 "; // 🌐
     
