@@ -50,7 +50,7 @@ public class GiveawayBot
     private final GiveawayManager manager;
     private final PremiumChecker premium;
     private final Uptimer uptimer;
-    //private final ServerCountUpdater countUpdater;
+    private final ServerCountUpdater countUpdater;
     
     protected GiveawayBot(Config config)
     {
@@ -75,7 +75,7 @@ public class GiveawayBot
         premium = new PremiumChecker(database, webhook, config.getString("checker-token"));
         manager = new GiveawayManager(database, restClient, uploader, emojis, botId);
         uptimer = new Uptimer(this);
-        //countUpdater = new ServerCountUpdater(this, config.getConfig("bot-lists").entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().unwrapped().toString())));
+        countUpdater = new ServerCountUpdater(this, config.getConfig("bot-lists").entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().unwrapped().toString())));
         
         // instantiate commands
         Command[] commands = 
@@ -127,7 +127,7 @@ public class GiveawayBot
         manager.start();
         premium.start();
         uptimer.start();
-        //countUpdater.start();
+        countUpdater.start();
     }
     
     public void shutdown()
@@ -143,7 +143,7 @@ public class GiveawayBot
             {
                 Thread.sleep(500);
                 uptimer.shutdown();
-                //countUpdater.shutdown();
+                countUpdater.shutdown();
                 interClient.shutdown();
                 premium.shutdown();
                 manager.shutdown();
