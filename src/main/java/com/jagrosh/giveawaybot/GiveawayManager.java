@@ -313,7 +313,7 @@ public class GiveawayManager
     
     private ButtonComponent createEntryButton(EmojiParser.ParsedEntryButton pe)
     {
-        return new ButtonComponent(ButtonComponent.Style.SUCCESS, pe.text, 
+        return new ButtonComponent(ButtonComponent.Style.SECONDARY, pe.text, 
                     pe.hasEmoji() ? new PartialEmoji(pe.name, pe.id, pe.animated) : null, 
                     ENTER_BUTTON_ID, null, false);
     }
