@@ -144,7 +144,7 @@ public class GiveawayManager
             String summaryKey = url == null ? null : url.replaceAll(".*/(\\d+/\\d+)/.*", "$1");
             rest.request(Route.PATCH_MESSAGE.format(giveaway.getChannelId(), giveaway.getMessageId()), renderGiveaway(giveaway, entries.size(), winners, summaryKey).toJson()).get();
             rest.request(Route.POST_MESSAGE.format(giveaway.getChannelId()), renderWinnerMessage(giveaway, winners).toJson()).get();
-            rest.simpleRequest(Route.BASE_URL + String.format("channels/%d/pins/%d", giveaway.getChannelId(), giveaway.getMessageId()), Route.Type.DELETE);
+            rest.simpleRequest(Route.BASE_URL + String.format("channels/%d/pins/%d", giveaway.getChannelId(), giveaway.getMessageId()), Route.Type.DELETE).get();
         }
         catch(ExecutionException | InterruptedException ex)
         {
@@ -236,7 +236,7 @@ public class GiveawayManager
             }
             
             database.createGiveaway(giveaway);
-            rest.simpleRequest(Route.BASE_URL + String.format("channels/%d/pins/%d", rm.getChannelId(), rm.getIdLong()), Route.Type.PUT);
+            rest.simpleRequest(Route.BASE_URL + String.format("channels/%d/pins/%d", rm.getChannelId(), rm.getIdLong()), Route.Type.PUT).get();
             return giveaway.getMessageId();
         }
         catch(InterruptedException | ExecutionException ex)
