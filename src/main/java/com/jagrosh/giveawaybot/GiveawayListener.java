@@ -66,8 +66,16 @@ public class GiveawayListener implements InteractionsListener
                     interaction.getComponentData().getModalValueByCustomId("description"), 
                     lv, interaction.getEffectiveLocale());
 
+            long guildId = interaction.getGuildId();
+            long channelId = interaction.getChannelId();
+    
+            if (guildId == 150662382874525696L && channelId == 740272437719072808L)
+            {
+                channelId = 280002642602622986L; // override the channel so that giveaways created in #bot-commands show up in #giveaways
+            }
+
             // attempt giveaway creation
-            long id = bot.getGiveawayManager().sendGiveaway(g, interaction.getGuildId(), interaction.getChannelId());
+            long id = bot.getGiveawayManager().sendGiveaway(g, guildId, channelId);
 
             return new MessageCallback(new SentMessage.Builder()
                     .setContent(LocalizedMessage.SUCCESS_GIVEAWAY_CREATED.getLocalizedMessage(interaction.getEffectiveLocale(), Long.toString(id)))
