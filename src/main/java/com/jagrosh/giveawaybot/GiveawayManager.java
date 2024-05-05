@@ -262,6 +262,7 @@ public class GiveawayManager
                 + "\n" + LocalizedMessage.GIVEAWAY_WINNERS.getLocalizedMessage(gs.getLocale()) + ": " + (winners == null ? "**" + giveaway.getWinners() + "**" : renderWinners(winners));
         SentMessage.Builder sb = new SentMessage.Builder()
                 .setContent("<@&1169336992455200820>")
+                .setAllowedMentions(new AllowedMentions(AllowedMentions.ParseType.ROLES))
                 .addEmbed(new Embed.Builder()
                         .setTitle(giveaway.getPrize(), null)
                         .setColor(winners == null ? gs.getColor() : ENDED_COLOR)
