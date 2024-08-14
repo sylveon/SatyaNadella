@@ -26,6 +26,7 @@ import com.jagrosh.interactions.components.*;
 import com.jagrosh.interactions.entities.SentMessage;
 import com.jagrosh.interactions.receive.CommandInteractionDataOption;
 import com.jagrosh.interactions.receive.Interaction;
+import com.jagrosh.interactions.requests.Route;
 import com.jagrosh.interactions.responses.AutocompleteCallback;
 import com.jagrosh.interactions.responses.DeferredCallback;
 import com.jagrosh.interactions.responses.InteractionResponse;
@@ -159,6 +160,22 @@ public class GiveawayListener implements InteractionsListener
                         .removeComponents().setEphemeral(true).build(), true);
             }
             catch(ArrayIndexOutOfBoundsException | NumberFormatException ignore){}
+        }
+        else if(customId.toLowerCase().startsWith(GiveawayManager.SUMMARY_BUTTON_ID.toLowerCase()))
+        {
+            try
+            {
+                String[] idSplit = customId.split(":");
+                long channelId = Long.parseLong(idSplit[1]);
+                long messageId = Long.parseLong(idSplit[2]);
+
+                String url = bot.getRestClient().request(Route.GET_MESSAGE.format(channelId, messageId)).get().getBody().getJSONArray("attachments").getJSONObject(0).getString("url");
+
+                return new MessageCallback(new SentMessage.Builder()
+                        .setContent(url)
+                        .setEphemeral(true).build());
+            }
+            catch(Exception ignore){}
         }
         else if(interaction.getChannelId() == bot.getControlChannel())
         {

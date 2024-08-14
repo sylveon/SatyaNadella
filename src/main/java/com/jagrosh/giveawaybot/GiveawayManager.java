@@ -55,7 +55,8 @@ import org.slf4j.LoggerFactory;
 public class GiveawayManager
 {
     public final static String ENTER_BUTTON_ID = "enter-giveaway",
-                               LEAVE_BUTTON_ID = "leave-giveaway";
+                               LEAVE_BUTTON_ID = "leave-giveaway",
+                               SUMMARY_BUTTON_ID = "giveaway-summary";
     private final static int MINIMUM_SECONDS = 10,
                              MAX_PRIZE_LENGTH = 250,
                              MAX_DESCR_LENGTH = 1000,
@@ -141,8 +142,8 @@ public class GiveawayManager
         try
         {
             JSONObject summary = createGiveawaySummary(giveaway, host, entries, winners);
-            String url = uploader.uploadFile(summary.toString(), "giveaway_summary.json");
-            rest.request(Route.PATCH_MESSAGE.format(giveaway.getChannelId(), giveaway.getMessageId()), renderGiveaway(giveaway, entries.size(), winners, url).toJson()).get();
+            String summaryKey = uploader.uploadFile(summary.toString(), "giveaway_summary.json");
+            rest.request(Route.PATCH_MESSAGE.format(giveaway.getChannelId(), giveaway.getMessageId()), renderGiveaway(giveaway, entries.size(), winners, summaryKey).toJson()).get();
             rest.request(Route.POST_MESSAGE.format(giveaway.getChannelId()), renderWinnerMessage(giveaway, winners).toJson()).get();
             rest.request(new PinRoute(giveaway.getChannelId(), giveaway.getMessageId(), Route.Type.DELETE)).get();
         }
@@ -271,7 +272,7 @@ public class GiveawayManager
         if(winners == null)
             sb.addComponent(new ActionRowComponent(createEntryButton(emojis.parse(gs.getEmoji()))));
         else if(summaryKey != null)
-            sb.addComponent(new ActionRowComponent(new ButtonComponent(LocalizedMessage.GIVEAWAY_SUMMARY.getLocalizedMessage(gs.getLocale()), summaryKey)));
+            sb.addComponent(new ActionRowComponent(createSummaryButton(gs.getLocale(), summaryKey)));
         else
             sb.removeComponents();
         return sb.build();
@@ -317,5 +318,10 @@ public class GiveawayManager
         return new ButtonComponent(ButtonComponent.Style.SECONDARY, pe.text, 
                     pe.hasEmoji() ? new PartialEmoji(pe.name, pe.id, pe.animated) : null, 
                     ENTER_BUTTON_ID, null, false);
+    }
+
+    private ButtonComponent createSummaryButton(WebLocale locale, String summaryKey)
+    {
+        return new ButtonComponent(ButtonComponent.Style.SECONDARY, LocalizedMessage.GIVEAWAY_SUMMARY.getLocalizedMessage(locale), null, String.format("%s:%s", SUMMARY_BUTTON_ID, summaryKey), null, false);
     }
 }

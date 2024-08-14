@@ -17,6 +17,8 @@ package com.jagrosh.giveawaybot.entities;
 
 import club.minnced.discord.webhook.WebhookClientBuilder;
 import club.minnced.discord.webhook.WebhookCluster;
+import club.minnced.discord.webhook.receive.ReadonlyMessage;
+
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -40,10 +42,11 @@ public class FileUploader
         int val = index.incrementAndGet();
         try
         {
-            return cluster.getWebhooks()
+            ReadonlyMessage msg = cluster.getWebhooks()
                     .get(val % cluster.getWebhooks().size())
                     .send(contents.getBytes(), filename)
-                    .get().getAttachments().get(0).getUrl();
+                    .get();
+            return String.format("%d:%d", msg.getChannelId(), msg.getId());
         }
         catch(Exception ex)
         {

@@ -17,6 +17,7 @@ package com.jagrosh.giveawaybot.commands;
 
 import com.jagrosh.giveawaybot.GiveawayBot;
 import com.jagrosh.giveawaybot.GiveawayException;
+import com.jagrosh.giveawaybot.GiveawayManager;
 import com.jagrosh.giveawaybot.entities.LocalizedMessage;
 import com.jagrosh.giveawaybot.util.GiveawayUtil;
 import com.jagrosh.interactions.command.ApplicationCommand;
@@ -28,6 +29,7 @@ import com.jagrosh.interactions.entities.ReceivedMessage;
 import com.jagrosh.interactions.entities.SentMessage;
 import com.jagrosh.interactions.receive.Interaction;
 import com.jagrosh.interactions.requests.RestClient;
+import com.jagrosh.interactions.requests.Route;
 import com.jagrosh.interactions.responses.InteractionResponse;
 import com.jagrosh.interactions.responses.MessageCallback;
 import com.jagrosh.interactions.util.JsonUtil;
@@ -63,7 +65,7 @@ public class RerollMessageCmd extends GBCommand
     
     protected InteractionResponse rerollGiveaway(Interaction interaction, ReceivedMessage msg, int count)
     {
-        String url;
+        String summaryKey;
         try
         {
             // check if the message is from the bot
@@ -72,10 +74,10 @@ public class RerollMessageCmd extends GBCommand
 
             // check if the message is a giveaway by attempting to get the reroll key
             ActionRowComponent arc = (ActionRowComponent) msg.getComponents().get(0);
-            url = arc.getComponents().stream()
+            summaryKey = arc.getComponents().stream()
                     .map(c -> (ButtonComponent) c)
-                    .filter(b -> b.getUrl() != null)
-                    .map(b -> b.getUrl())
+                    .filter(b -> b.getCustomId().startsWith(GiveawayManager.SUMMARY_BUTTON_ID))
+                    .map(b -> b.getCustomId())
                     .findFirst().orElse(null);
         }
         catch(Exception ex)
@@ -86,7 +88,14 @@ public class RerollMessageCmd extends GBCommand
         // reroll
         try
         {
-            RestClient.RestResponse res = bot.getRestClient().simpleRequest(url).get();
+            String[] keySplit = summaryKey.split(":");
+            long channelId = Long.parseLong(keySplit[1]);
+            long messageId = Long.parseLong(keySplit[2]);
+
+            RestClient rest = bot.getRestClient();
+            String url = rest.request(Route.GET_MESSAGE.format(channelId, messageId)).get().getBody().getJSONArray("attachments").getJSONObject(0).getString("url");
+
+            RestClient.RestResponse res = rest.simpleRequest(url).get();
             List<Long> entries = JsonUtil.optArray(res.getBody(), "entries", user -> user.getLong("id"));
             List<Long> winner = GiveawayUtil.selectWinners(entries, count);
             if(winner.isEmpty())
