@@ -19,7 +19,7 @@ COPY --from=builder /app/target/GiveawayBot-4.0-jar-with-dependencies.jar /app/g
 # Create non-root user, data directories for bind-mounts, and set permissions
 RUN useradd -ms /bin/bash appuser \
  && mkdir -p /data/config /data/db \
- && chown -R appuser:appuser /app/giveawaybot.jar /data
+ && chown -R appuser:appuser /data
 
 # Allow mounting a directory at /data for config and database files
 VOLUME ["/data"]
