@@ -25,6 +25,6 @@ RUN useradd -ms /bin/bash appuser \
 VOLUME ["/data"]
 USER appuser
 
-# Hardcode Typesafe Config path to /data/config/application.conf
-ENTRYPOINT ["java", "-Dconfig.file=/data/config/application.conf", "-jar", "/app/giveawaybot.jar"]
+# Hardcode Config paths
+ENTRYPOINT ["java", "-Dconfig.file=/data/config/application.conf", "-Dobjectdb.conf=/data/config/objectdb.conf", "-jar", "/app/giveawaybot.jar"]
 

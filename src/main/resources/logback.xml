@@ -18,41 +18,14 @@
     <!-- author: Kaidan Gustave  -->
     <property name="pattern" value="%nopex[%d{HH:mm:ss}] [%level] [%logger{0}]: %msg%n%ex" />
     
-    <!-- appenders -->
-    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/log.%d{yyyy-MM-dd}.txt</fileNamePattern>
-            <maxHistory>30</maxHistory>
-            <totalSizeCap>1GB</totalSizeCap>
-        </rollingPolicy>
-        <encoder><pattern>${pattern}</pattern></encoder>
-    </appender>
-    
-    <appender name="DEBUG-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/log-debug.%d{yyyy-MM-dd}.txt</fileNamePattern>
-            <maxHistory>30</maxHistory>
-            <totalSizeCap>1GB</totalSizeCap>
-        </rollingPolicy>
-        <encoder><pattern>${pattern}</pattern></encoder>
-    </appender>
-    
+    <!-- appenders -->    
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder><pattern>${pattern}</pattern></encoder>
     </appender>
     
     <!-- loggers -->
-    <logger name="com.jagrosh.giveawaybot.GiveawayManager" level="DEBUG" additivity="false">
-        <appender-ref ref="DEBUG-FILE"/>
-    </logger>
-    
-    <logger name="com.jagrosh.giveawaybot.GiveawayListener" level="DEBUG" additivity="false">
-        <appender-ref ref="DEBUG-FILE"/>
-    </logger>
-    
-    <root level="INFO">
-        <appender-ref ref="FILE" />
-        <!--appender-ref ref="FILE"/-->
+    <root level="DEBUG">
+        <appender-ref ref="STDOUT" />
     </root>
     
 </configuration>
