@@ -125,7 +125,7 @@ public class GiveawayBot
     {
         interClient.start();
         manager.start();
-        premium.start();
+        //premium.start();
         uptimer.start();
         //countUpdater.start();
     }
@@ -145,7 +145,7 @@ public class GiveawayBot
                 uptimer.shutdown();
                 //countUpdater.shutdown();
                 interClient.shutdown();
-                premium.shutdown();
+                //premium.shutdown();
                 manager.shutdown();
                 uploader.shutdown();
                 webhook.sendBlocking(WebhookLog.Level.INFO, "Shutting down...  `" + reason + "`");
