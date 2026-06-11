@@ -48,7 +48,7 @@ public class GiveawayBot
     private final Database database;
     private final InteractionsClient interClient;
     private final GiveawayManager manager;
-    private final PremiumChecker premium;
+    //private final PremiumChecker premium;
     private final Uptimer uptimer;
     //private final ServerCountUpdater countUpdater;
     
@@ -72,7 +72,7 @@ public class GiveawayBot
         GiveawayListener listener = new GiveawayListener(this);
         EmojiParser emojis = new EmojiParser(config.getConfig("emojis").getStringList("free"));
         restClient = new RestClient(config.getString("bot-token"));
-        premium = new PremiumChecker(database, webhook, config.getString("checker-token"));
+        //premium = new PremiumChecker(database, webhook, config.getString("checker-token"));
         manager = new GiveawayManager(database, restClient, uploader, emojis, botId);
         uptimer = new Uptimer(this);
         //countUpdater = new ServerCountUpdater(this, config.getConfig("bot-lists").entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().unwrapped().toString())));
@@ -188,11 +188,6 @@ public class GiveawayBot
     public Database getDatabase()
     {
         return database;
-    }
-
-    public PremiumChecker getPremiumChecker()
-    {
-        return premium;
     }
     
     public GiveawayManager getGiveawayManager()
