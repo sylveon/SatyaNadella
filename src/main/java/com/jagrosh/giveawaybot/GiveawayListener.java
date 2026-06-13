@@ -47,10 +47,12 @@ public class GiveawayListener implements InteractionsListener
     private final Logger log = LoggerFactory.getLogger(GiveawayListener.class);
     private final Map<String,Long> metrics = new HashMap<>();
     private final GiveawayBot bot;
+    private final long summaryChannelId;
     
-    public GiveawayListener(GiveawayBot bot)
+    public GiveawayListener(GiveawayBot bot, long summaryChannelId)
     {
         this.bot = bot;
+        this.summaryChannelId = summaryChannelId;
     }
     
     @Override
@@ -166,10 +168,9 @@ public class GiveawayListener implements InteractionsListener
             try
             {
                 String[] idSplit = customId.split(":");
-                long channelId = Long.parseLong(idSplit[1]);
-                long messageId = Long.parseLong(idSplit[2]);
+                long messageId = Long.parseLong(idSplit[1]);
 
-                String url = bot.getRestClient().request(Route.GET_MESSAGE.format(channelId, messageId)).get().getBody().getJSONArray("attachments").getJSONObject(0).getString("url");
+                String url = bot.getRestClient().request(Route.GET_MESSAGE.format(summaryChannelId, messageId)).get().getBody().getJSONArray("attachments").getJSONObject(0).getString("url");
 
                 return new MessageCallback(new SentMessage.Builder()
                         .setContent(url)

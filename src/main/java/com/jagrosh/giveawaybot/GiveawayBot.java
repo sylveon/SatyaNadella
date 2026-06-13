@@ -69,7 +69,7 @@ public class GiveawayBot
         
         // instantiate the remaing components
         uploader = new FileUploader(config.getString("bot-token"), config.getLong("summaries-channel"));
-        GiveawayListener listener = new GiveawayListener(this);
+        GiveawayListener listener = new GiveawayListener(this, config.getLong("summaries-channel"));
         EmojiParser emojis = new EmojiParser(config.getConfig("emojis").getStringList("free"));
         restClient = new RestClient(config.getString("bot-token"));
         //premium = new PremiumChecker(database, webhook, config.getString("checker-token"));
