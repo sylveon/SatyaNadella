@@ -43,10 +43,12 @@ public class RerollMessageCmd extends GBCommand
 {
     private final static String JUMP_LINK = "https://discord.com/channels/%d/%d/%d";
     private final static String KEY = "#giveaway=";
+    private final long summaryChannelId;
     
-    public RerollMessageCmd(GiveawayBot bot)
+    public RerollMessageCmd(GiveawayBot bot, long summaryChannelId)
     {
         super(bot);
+        this.summaryChannelId = summaryChannelId;
         this.app = new ApplicationCommand.Builder()
                 .setType(ApplicationCommand.Type.MESSAGE)
                 .setName("Reroll Giveaway")
@@ -89,11 +91,10 @@ public class RerollMessageCmd extends GBCommand
         try
         {
             String[] keySplit = summaryKey.split(":");
-            long channelId = Long.parseLong(keySplit[1]);
-            long messageId = Long.parseLong(keySplit[2]);
+            long messageId = Long.parseLong(keySplit[1]);
 
             RestClient rest = bot.getRestClient();
-            String url = rest.request(Route.GET_MESSAGE.format(channelId, messageId)).get().getBody().getJSONArray("attachments").getJSONObject(0).getString("url");
+            String url = rest.request(Route.GET_MESSAGE.format(summaryChannelId, messageId)).get().getBody().getJSONArray("attachments").getJSONObject(0).getString("url");
 
             RestClient.RestResponse res = rest.simpleRequest(url).get();
             List<Long> entries = JsonUtil.optArray(res.getBody(), "entries", user -> user.getLong("id"));

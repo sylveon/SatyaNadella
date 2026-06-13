@@ -37,9 +37,9 @@ import org.json.JSONObject;
  */
 public class RerollCmd extends RerollMessageCmd
 {
-    public RerollCmd(GiveawayBot bot)
+    public RerollCmd(GiveawayBot bot, long summaryChannelId)
     {
-        super(bot);
+        super(bot, summaryChannelId);
         this.app = new ApplicationCommand.Builder()
                 .setType(ApplicationCommand.Type.CHAT_INPUT)
                 .setName(bot.getCommandPrefix() + "reroll")

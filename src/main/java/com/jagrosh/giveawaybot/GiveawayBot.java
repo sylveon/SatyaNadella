@@ -68,7 +68,7 @@ public class GiveawayBot
         webhook.send(WebhookLog.Level.INFO, String.format("Database contains `%d` giveaways", database.countAllGiveaways()));
         
         // instantiate the remaing components
-        uploader = new FileUploader(config.getStringList("file-uploader"));
+        uploader = new FileUploader(config.getString("bot-token"), config.getLong("summaries-channel"));
         GiveawayListener listener = new GiveawayListener(this);
         EmojiParser emojis = new EmojiParser(config.getConfig("emojis").getStringList("free"));
         restClient = new RestClient(config.getString("bot-token"));
@@ -90,8 +90,8 @@ public class GiveawayBot
             new ListCmd(this),
             new DeleteCmd(this),
             new EndCmd(this),
-            new RerollCmd(this),
-            new RerollMessageCmd(this),
+            new RerollCmd(this, config.getLong("summaries-channel")),
+            new RerollMessageCmd(this, config.getLong("summaries-channel")),
             new SettingsCmd(this)
         };
         
@@ -147,7 +147,7 @@ public class GiveawayBot
                 interClient.shutdown();
                 //premium.shutdown();
                 manager.shutdown();
-                uploader.shutdown();
+                //uploader.shutdown();
                 webhook.sendBlocking(WebhookLog.Level.INFO, "Shutting down...  `" + reason + "`");
                 webhook.shutdown();
                 Thread.sleep(500);

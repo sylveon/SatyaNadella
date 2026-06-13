@@ -15,12 +15,13 @@
  */
 package com.jagrosh.giveawaybot.entities;
 
-import club.minnced.discord.webhook.WebhookClientBuilder;
-import club.minnced.discord.webhook.WebhookCluster;
-import club.minnced.discord.webhook.receive.ReadonlyMessage;
+import java.io.IOException;
+import java.util.concurrent.CompletableFuture;
+import okhttp3.*;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import com.jagrosh.interactions.requests.Route;
 
 /**
  *
@@ -28,34 +29,60 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class FileUploader
 {
-    private final WebhookCluster cluster = new WebhookCluster();
-    private final AtomicInteger index = new AtomicInteger(0);
-    
-    public FileUploader(List<String> urls)
+    private final OkHttpClient client = new OkHttpClient.Builder().build();
+    private final String authorization;
+    private final long channelId;
+
+    public FileUploader(String authorization, long channelId)
     {
-        for(String url: urls)
-            cluster.addWebhooks(new WebhookClientBuilder(url).build());
+        this.authorization = authorization;
+        this.channelId = channelId;
     }
     
     public String uploadFile(String contents, String filename)
     {
-        int val = index.incrementAndGet();
         try
         {
-            ReadonlyMessage msg = cluster.getWebhooks()
-                    .get(val % cluster.getWebhooks().size())
-                    .send(contents.getBytes(), filename)
-                    .get();
-            return String.format("%d:%d", msg.getChannelId(), msg.getId());
+            long msgId = sendFile(contents, filename).get().getLong("id");
+            return String.format("%d", msgId);
         }
         catch(Exception ex)
         {
             return null;
         }
     }
-    
-    public void shutdown()
+
+    private CompletableFuture<JSONObject> sendFile(String contents, String filename)
     {
-        cluster.close();
+        return CompletableFuture.supplyAsync(() -> 
+        {
+            try
+            {
+                RequestBody body = new MultipartBody.Builder()
+                    .setType(MultipartBody.FORM)
+                    .addFormDataPart("files[0]", filename, RequestBody.create(contents.getBytes()))
+                    .build();
+                Response res = client.newCall(new Request.Builder()
+                    .url(Route.POST_MESSAGE.format(channelId).getURL())
+                    .post(body)
+                    .header("Authorization", "Bot " + authorization)
+                    .header("User-Agent", "DiscordBot (DiscordInteractions, 0.1)").build()).execute();
+                return bodyToJson(res.body());
+            }
+            catch(IOException ex)
+            {
+                return new JSONObject();
+            }
+        });
+    }
+
+    private static JSONObject bodyToJson(ResponseBody body) throws IOException
+    {
+        if(body == null)
+            return new JSONObject();
+        String str = body.string();
+        if(str.isEmpty())
+            return new JSONObject();
+        return str.startsWith("[") ? new JSONObject().put("_", new JSONArray(str)) : new JSONObject(str);
     }
 }
